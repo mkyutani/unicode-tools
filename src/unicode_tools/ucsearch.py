@@ -50,6 +50,3 @@ def ucsearch():
         search(expr, unicode_database)
 
     return 0
-
-if __name__ == '__main__':
-    exit(ucsearch())
