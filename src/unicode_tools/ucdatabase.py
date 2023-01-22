@@ -147,9 +147,9 @@ def analyze(xml_list):
     for u in unicode_set:
         unicode_database.append(
             {
-                'code': unicode_set[u]['code'],
-                'name': unicode_set[u]['name'],
-                'char': unicode_set[u]['char']
+                'cd': unicode_set[u]['code'],
+                'n': unicode_set[u]['name'],
+                'c': unicode_set[u]['char']
             }
         )
 
@@ -163,7 +163,7 @@ def save(unicode_database):
 
     with open(unicode_database_path, 'w') as fout:
         json_out = {
-            'characters': unicode_database
+            'chars': unicode_database
         }
         json.dump(json_out, fout, indent=1)
 

@@ -15,11 +15,11 @@ def search(fragment, unicode_database):
     if not fragment:
         return None
 
-    for u in unicode_database['characters']:
-        name = u['name']
-        code = u['code']
-        char = u['char']
-        if re.search(fragment, u['code'], flags=re.IGNORECASE) or re.search(fragment, u['name'], flags=re.IGNORECASE):
+    for u in unicode_database['chars']:
+        name = u['n']
+        code = u['cd']
+        char = u['c']
+        if re.search(fragment, u['cd'], flags=re.IGNORECASE) or re.search(fragment, u['n'], flags=re.IGNORECASE):
             print(f'{char} {code} {name}')
 
 def load():
