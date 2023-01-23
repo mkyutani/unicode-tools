@@ -12,18 +12,25 @@ unicode_database_filename = 'unicode_database.json'
 unicode_database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../../../share/applications/{unicode_database_filename}'))
 unicode_database_zip_path = unicode_database_path + '.zip'
 
-def search(fragment, unicode_database):
+def search(fragment, unicode_database, by_code=False, short=False):
     if not unicode_database:
         return None
     if not fragment:
         return None
 
+    by_name = False
+    if not by_code:
+        by_name = True
+
     for u in unicode_database['chars']:
         name = u['n']
         code = u['cd']
         char = u['c']
-        if re.search(fragment, u['cd'], flags=re.IGNORECASE) or re.search(fragment, u['n'], flags=re.IGNORECASE):
-            print(f'{char} {code} {name}')
+        if (by_code and re.search(fragment, u['cd'], flags=re.IGNORECASE)) or (by_name and re.search(fragment, u['n'], flags=re.IGNORECASE)):
+            if short:
+                print(f'{char}', end='')
+            else:
+                print(f'{char} {code} {name}')
 
 def load():
     try:
@@ -49,6 +56,8 @@ def ucsearch():
     import argparse
     parser = argparse.ArgumentParser(description='Search unicode characters')
     parser.add_argument('expression', nargs='+', metavar='EXPR', help='expression to search')
+    parser.add_argument('-c', '--code', action='store_true', help='by code')
+    parser.add_argument('-s', '--short', action='store_true', help='print character only')
     parser.add_argument('-I', '--info', nargs=1, default=[None], help='print character information')
 
     if len(sys.argv) < 2:
@@ -62,6 +71,6 @@ def ucsearch():
         return errno.EIO
 
     for expr in args.expression:
-        search(expr, unicode_database)
+        search(expr, unicode_database, by_code=args.code, short=args.short)
 
     return 0
