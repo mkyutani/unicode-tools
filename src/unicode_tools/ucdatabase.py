@@ -163,21 +163,31 @@ def save(unicode_database):
     if not unicode_database:
         return
 
-    with open(unicode_database_path, 'w') as fout:
-        json_out = {
-            'chars': unicode_database
-        }
-        json.dump(json_out, fout, indent=1)
+    try:
+        dirname = os.path.dirname(unicode_database_path)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname, exist_ok=True)
 
-    print(f'Created json database: {unicode_database_path}', file=sys.stderr)
+        with open(unicode_database_path, 'w') as fout:
+            json_out = {
+                'chars': unicode_database
+            }
+            json.dump(json_out, fout, indent=1)
+
+        print(f'Created unicode database: {unicode_database_path}', file=sys.stderr)
+
+    except Exception as e:
+        print(f'Failed to save unicode database to {unicode_database_path}', file=sys.stderr)
+        print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
+        return
 
 def delete():
     if os.path.exists(unicode_databasae_zip_path):
         os.remove(unicode_database_zip_path)
-        print(f'Deleted json database zip: {unicode_database_zip_path}', file=sys.stderr)
+        print(f'Deleted unicode database zip: {unicode_database_zip_path}', file=sys.stderr)
     if os.path.exists(unicode_database_path):
         os.remove(unicode_database_path)
-        print(f'Deleted json database: {unicode_database_path}', file=sys.stderr)
+        print(f'Deleted unicode database: {unicode_database_path}', file=sys.stderr)
 
 def zip():
     try:
