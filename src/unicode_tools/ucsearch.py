@@ -6,8 +6,11 @@ import json
 import os
 import re
 import sys
+import zipfile
 
-unicode_database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../share/applications/unicode_database.json'))
+unicode_database_filename = 'unicode_database.json'
+unicode_database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../../../share/applications/{unicode_database_filename}'))
+unicode_database_zip_path = unicode_database_path + '.zip'
 
 def search(fragment, unicode_database):
     if not unicode_database:
@@ -23,8 +26,20 @@ def search(fragment, unicode_database):
             print(f'{char} {code} {name}')
 
 def load():
-    with open(unicode_database_path, 'r') as fin:
-        return json.load(fin)
+    try:
+
+        if os.path.exists(unicode_database_path):
+            with open(unicode_database_path, 'r') as fin:
+                return json.load(fin)
+        elif os.path.exists(unicode_database_zip_path):
+            with zipfile.ZipFile(unicode_database_zip_path, 'r') as zip:
+                json_data = zip.read(unicode_database_filename)
+                return json.loads(json_data)
+
+    except Exception as e:
+        print(f'Failed to load unicode database: {unicode_database_path}', file=sys.stderr)
+        print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
+        return None
 
 def ucsearch():
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")

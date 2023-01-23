@@ -13,7 +13,9 @@ import xml.etree.ElementTree as et
 unicode_zip_url = 'https://www.unicode.org/Public/15.0.0/ucdxml/ucd.all.flat.zip'
 unicode_zip_filename = 'ucd.all.flat.zip'
 unicode_xml_filename = 'ucd.all.flat.xml'
-unicode_database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../share/applications/unicode_database.json'))
+unicode_database_filename = 'unicode_database.json'
+unicode_database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../../../share/applications/{unicode_database_filename}'))
+unicode_database_zip_path = unicode_database_path + '.zip'
 
 namespace = '{http://www.unicode.org/ns/2003/ucd/1.0}'
 tag_ucd = namespace + 'ucd'
@@ -34,7 +36,7 @@ def get():
 
             zip_filepath = os.path.join(tmpdir, unicode_zip_filename)
 
-            print(f'Downloading {zip_filepath} ...', file=sys.stderr)
+            print(f'Downloading {unicode_zip_url} ...', file=sys.stderr)
 
             res = requests.get(unicode_zip_url, stream=True)
             if res.status_code >= 400:
@@ -57,7 +59,7 @@ def get():
             with zipfile.ZipFile(zip_filepath, 'r') as zip:
                 xml_list = zip.read(unicode_xml_filename)
 
-            print('Extracted xml', file=sys.stderr)
+            print('Extracted unicode data xml', file=sys.stderr)
 
             return xml_list
 
@@ -170,14 +172,41 @@ def save(unicode_database):
     print(f'Created json database: {unicode_database_path}', file=sys.stderr)
 
 def delete():
-    os.remove(unicode_database_path)
-    print(f'Deleted json database: {unicode_database_path}', file=sys.stderr)
+    if os.path.exists(unicode_databasae_zip_path):
+        os.remove(unicode_database_zip_path)
+        print(f'Deleted json database zip: {unicode_database_zip_path}', file=sys.stderr)
+    if os.path.exists(unicode_database_path):
+        os.remove(unicode_database_path)
+        print(f'Deleted json database: {unicode_database_path}', file=sys.stderr)
+
+def zip():
+    try:
+        with zipfile.ZipFile(unicode_database_zip_path, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip:
+            zip.write(unicode_database_path, arcname=unicode_database_filename)
+            print(f'Archived unicode database: {unicode_database_zip_path}', file=sys.stderr)
+
+        os.remove(unicode_database_path)
+
+    except Exception as e:
+        print(f'Failed to archive unicode database {unicode_database_path}', file=sys.stderr)
+        print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
 
 def uccreatedatabase():
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", line_buffering=True)
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", line_buffering=True)
+
+    import argparse
+    parser = argparse.ArgumentParser(description='Create database for unicode tool')
+    parser.add_argument('-z', '--zip', action='store_true', help='zip database')
+
+    args = parser.parse_args()
+
     save(analyze(get()))
+
+    if args.zip:
+        zip()
+
     return 0
 
 def ucdeletedatabase():
