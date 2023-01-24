@@ -182,7 +182,7 @@ def save(unicode_database):
         return
 
 def delete():
-    if os.path.exists(unicode_databasae_zip_path):
+    if os.path.exists(unicode_database_zip_path):
         os.remove(unicode_database_zip_path)
         print(f'Deleted unicode database zip: {unicode_database_zip_path}', file=sys.stderr)
     if os.path.exists(unicode_database_path):
