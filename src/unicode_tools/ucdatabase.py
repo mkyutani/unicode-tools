@@ -23,6 +23,8 @@ tag_noncharacter = namespace + 'noncharacter'
 tag_reserved = namespace + 'reserved'
 tag_surrogate = namespace + 'surrogate'
 tag_name_alias = namespace + 'name-alias'
+tag_blocks = namespace + 'blocks'
+tag_block = namespace + 'block'
 
 def get():
     zip_filepath = '(Not assigned)'
@@ -64,10 +66,10 @@ def get():
         print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
         return None
 
-def get_cp(char):
-    cp = char.attrib.get('cp')
-    first_cp = char.attrib.get('first-cp')
-    last_cp = char.attrib.get('last-cp')
+def get_cp(tag):
+    cp = tag.attrib.get('cp')
+    first_cp = tag.attrib.get('first-cp')
+    last_cp = tag.attrib.get('last-cp')
 
     if cp:
         first_cp = cp
@@ -75,27 +77,39 @@ def get_cp(char):
 
     if not (first_cp and last_cp):
         print(f'Invalid code range: cp={cp}, first_cp={first_cp}, last_cp={last_cp}', file=sys.stderr)
-        return []
+        return None
 
-    if char.tag != tag_char:
-        if first_cp == last_cp:
-            code_range = first_cp
-        else:
-            code_range = f'{first_cp}-{last_cp}'
-        code_range = code_range.upper()
+    min = int(first_cp, 16)
+    max = int(last_cp, 16)
 
-        if char.tag == tag_reserved:
-            print(f'Found reserved code(s): {code_range}', file=sys.stderr)
-        elif char.tag == tag_noncharacter:
-            print(f'Found non character code(s): {code_range}', file=sys.stderr)
-        elif char.tag == tag_surrogate:
-            print(f'Found surrogate code(s): {code_range}', file=sys.stderr)
-        else:
-            print(f'Found unknown tag: {char.tag} {code_range}', file=sys.stderr)
-        return []
-        
-    value = range(int(first_cp, 16), int(last_cp, 16) + 1)
-    return value
+    return (min, max)
+
+def get_char_cp(char):
+
+    value = None
+    r = get_cp(char)
+    if r:
+        min = r[0]
+        max = r[1]
+        if char.tag != tag_char:
+            if min == max:
+                code_range = f'{min:X}'
+            else:
+                code_range = f'{min:X}-{max:X}'
+            code_range = code_range.upper()
+
+            if char.tag == tag_reserved:
+                print(f'Found reserved code(s): {code_range}', file=sys.stderr)
+            elif char.tag == tag_noncharacter:
+                print(f'Found non character code(s): {code_range}', file=sys.stderr)
+            elif char.tag == tag_surrogate:
+                print(f'Found surrogate code(s): {code_range}', file=sys.stderr)
+            else:
+                print(f'Found unknown tag: {char.tag} {code_range}', file=sys.stderr)
+            return []
+            
+        value = range(min, max + 1)
+        return value
 
 def get_name(char):
     value = []
@@ -123,14 +137,15 @@ def store(xml_list):
 
     description = root.find(tag_description)
     repertoire = root.find(tag_repertoire)
+    blocks = root.find(tag_blocks)
 
     with Connection() as conn:
         with Cursor(conn) as cur:
             count = 0
             for char in repertoire:
-                code_range = get_cp(char)
+                code_range = get_char_cp(char)
                 for code in code_range:
-                    value_code = f'"{code}"'
+                    value_code = code
                     name = get_name(char)
                     if not name:
                         print(f'Found no character: {code:X}', file=sys.stderr)
@@ -154,7 +169,30 @@ def store(xml_list):
             conn.commit()
             print(f'Stored {count} characters', file=sys.stderr)
 
-    return count
+        with Cursor(conn) as cur:
+            count = 0
+            for block in blocks:
+                r = get_cp(block)
+                if not r:
+                    continue
+
+                min = r[0]
+                max = r[1]
+                name = block.attrib.get('name')
+                if not name:
+                    print(f'No name found in block: {min:X}-{max:X}', file=sys.stderr)
+                    continue
+
+                escaped_name = name.replace('"', '""')
+                value_name = f'"{escaped_name}"'
+
+                dml = f'insert into block(name, first, last) values({value_name}, {min}, {max})'
+                print(dml)
+                cur.execute(dml)
+                count = count + 1
+
+            conn.commit()
+            print(f'Stored {count} blocks', file=sys.stderr)
 
 def wrap_io():
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")

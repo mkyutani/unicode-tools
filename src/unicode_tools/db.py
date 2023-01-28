@@ -8,24 +8,25 @@ unicode_sqlite3_database_path = os.path.abspath(os.path.join(os.path.dirname(__f
 class Database:
 
     def create(self):
-        created = False
-        with Connection() as conn:
+
+        def execute(conn, name, dml):
             with Cursor(conn) as cur:
                 try:
-                    table = 'char'
-                    cur.execute('create table char(code integer primary key, name text, char text)')
+                    cur.execute(dml)
                     conn.commit()
-                    created = True
+                    print(f'Created table: {name}')
                 except Exception as e:
                     t = type(e)
                     s = str(e)
                     if t == sqlite3.OperationalError and s.endswith(' already exists'):
-                        print(f'Tables already exist', file=sys.stderr)
+                        print(f'Table already exists: {name}', file=sys.stderr)
                     else:
-                        print(f'Failed to create table {table}', file=sys.stderr)
+                        print(f'Failed to create table: {name}', file=sys.stderr)
                         print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
-        if created:
-            print(f'Created tables')
+
+        with Connection() as conn:
+            execute(conn, 'char', 'create table char(code integer primary key, name text, char text)')
+            execute(conn, 'block', 'create table block(name text primary key, first integer, last integer)')
 
     def delete(self):
         if not os.path.exists(unicode_sqlite3_database_path):
