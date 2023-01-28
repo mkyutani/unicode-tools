@@ -2,51 +2,24 @@
 
 import errno
 import io
-import json
-import os
-import re
 import sys
-import zipfile
 
-unicode_database_filename = 'unicode_database.json'
-unicode_database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../../../share/applications/{unicode_database_filename}'))
-unicode_database_zip_path = unicode_database_path + '.zip'
+from .db import Connection, Cursor
 
-def search(fragment, unicode_database, by_code=False, short=False):
-    if not unicode_database:
-        return None
-    if not fragment:
-        return None
-
-    by_name = False
-    if not by_code:
-        by_name = True
-
-    for u in unicode_database['chars']:
-        name = u['n']
-        code = u['cd']
-        char = u['c']
-        if (by_code and re.search(fragment, u['cd'], flags=re.IGNORECASE)) or (by_name and re.search(fragment, u['n'], flags=re.IGNORECASE)):
-            if short:
-                print(f'{char}', end='')
+def search(fragment, by_code=False, short=False):
+    with Connection() as conn:
+        with Cursor(conn) as cur:
+            if by_code:
+                cond = f'where code = "{fragment.upper()}"'
             else:
-                print(f'{char} {code} {name}')
-
-def load():
-    try:
-
-        if os.path.exists(unicode_database_path):
-            with open(unicode_database_path, 'r') as fin:
-                return json.load(fin)
-        elif os.path.exists(unicode_database_zip_path):
-            with zipfile.ZipFile(unicode_database_zip_path, 'r') as zip:
-                json_data = zip.read(unicode_database_filename)
-                return json.loads(json_data)
-
-    except Exception as e:
-        print(f'Failed to load unicode database: {unicode_database_path}', file=sys.stderr)
-        print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
-        return None
+                cond = f'where name like "%{fragment.upper()}%"'
+            dml = f'select * from char {cond}'
+            cur.execute(dml)
+            for (code, name, char) in cur.fetchall():
+                if short:
+                    print(f'{char}', end='')
+                else:
+                    print(f'{char} {code} {name}')
 
 def ucsearch():
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
@@ -66,11 +39,7 @@ def ucsearch():
 
     args = parser.parse_args()
 
-    unicode_database = load()
-    if not unicode_database:
-        return errno.EIO
-
     for expr in args.expression:
-        search(expr, unicode_database, by_code=args.code, short=args.short)
+        search(expr, by_code=args.code, short=args.short)
 
     return 0
