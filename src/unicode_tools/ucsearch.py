@@ -54,6 +54,21 @@ def search(fragment, by, short=False):
             else:
                 print(f'{char} {code:X} {name}')
 
+def search_flag(regional_code, short=False):
+    flag = ''
+    name = ''
+    codes = []
+    for c in (regional_code.upper())[0:2]:
+        code = 0x1f1e5 + (ord(c) - ord('@'))
+        flag = flag + chr(code)
+        codes.append(f'{code:X}')
+        name = name + c
+    if short:
+        print(f'{flag}')
+    else:
+        code_value = '+'.join(codes)
+        print(f'{flag} {code_value} FLAG OF {name}')
+
 def ucsearch():
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", line_buffering=True)
@@ -64,6 +79,7 @@ def ucsearch():
     parser.add_argument('expression', nargs='+', metavar='EXPR', help='expression to search')
     parser.add_argument('-b', '--block', action='store_true', help='by block name')
     parser.add_argument('-c', '--code', action='store_true', help='by code')
+    parser.add_argument('-f', '--flag', action='store_true', help='search regional flags')
     parser.add_argument('-s', '--short', action='store_true', help='print character only')
     parser.add_argument('-I', '--info', nargs=1, default=[None], help='print character information')
 
@@ -80,7 +96,11 @@ def ucsearch():
     else:
         by = None
 
-    for expr in args.expression:
-        search(expr, by, short=args.short)
+    if args.flag:
+        for expr in args.expression:
+            search_flag(expr, short=args.short)
+    else:
+        for expr in args.expression:
+            search(expr, by, short=args.short)
 
     return 0
