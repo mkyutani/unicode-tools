@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import sys
 
 unicode_sqlite3_database_filename = 'unicode.db'
 unicode_sqlite3_database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../../../share/applications/{unicode_sqlite3_database_filename}'))
@@ -12,7 +13,7 @@ class Database:
             with Cursor(conn) as cur:
                 try:
                     table = 'char'
-                    cur.execute('create table char(code text primary key, name text, char text)')
+                    cur.execute('create table char(code integer primary key, name text, char text)')
                     conn.commit()
                     created = True
                 except Exception as e:
@@ -27,9 +28,11 @@ class Database:
             print(f'Created tables')
 
     def delete(self):
-        if os.path.exists(unicode_sqlite3_database_path):
+        if not os.path.exists(unicode_sqlite3_database_path):
+            print(f'No database file: {unicode_sqlite3_database_path}', file=sys.stderr)
+        else:
             os.remove(unicode_sqlite3_database_path)
-            print(f'Deleted unicode database: {unicode_sqlite3_database_path}', file=sys.stderr)
+            print(f'Deleted database file: {unicode_sqlite3_database_path}', file=sys.stderr)
 
 class Connection:
 
