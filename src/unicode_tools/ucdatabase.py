@@ -68,16 +68,34 @@ def get_cp(char):
     cp = char.attrib.get('cp')
     first_cp = char.attrib.get('first-cp')
     last_cp = char.attrib.get('last-cp')
-    value = ''
+
     if cp:
-        value = cp
-    elif first_cp or last_cp:
-        if first_cp:
-            value = value + first_cp
-        value = value + '-'
-        if last_cp:
-            value = value + last_cp
-    return value.upper()
+        first_cp = cp
+        last_cp = cp
+
+    if not (first_cp and last_cp):
+        print(f'Invalid code range: cp={cp}, first_cp={first_cp}, last_cp={last_cp}', file=sys.stderr)
+        return []
+
+    if char.tag != tag_char:
+        if first_cp == last_cp:
+            code_range = first_cp
+        else:
+            code_range = f'{first_cp}-{last_cp}'
+        code_range = code_range.upper()
+
+        if char.tag == tag_reserved:
+            print(f'Found reserved code(s): {code_range}', file=sys.stderr)
+        elif char.tag == tag_noncharacter:
+            print(f'Found non character code(s): {code_range}', file=sys.stderr)
+        elif char.tag == tag_surrogate:
+            print(f'Found surrogate code(s): {code_range}', file=sys.stderr)
+        else:
+            print(f'Found unknown tag: {char.tag} {code_range}', file=sys.stderr)
+        return []
+        
+    value = range(int(first_cp, 16), int(last_cp, 16) + 1)
+    return value
 
 def get_name(char):
     value = []
@@ -110,43 +128,28 @@ def store(xml_list):
         with Cursor(conn) as cur:
             count = 0
             for char in repertoire:
-                cp = get_cp(char)
+                code_range = get_cp(char)
+                for code in code_range:
+                    value_code = f'"{code}"'
+                    name = get_name(char)
+                    if not name:
+                        print(f'Found no character: {code:X}', file=sys.stderr)
+                        continue
+                    value_name = f'"{name}"'
 
-                if char.tag != tag_char:
-                    if char.tag == tag_reserved:
-                        print(f'Found reserved code(s): {cp}', file=sys.stderr)
-                    elif char.tag == tag_noncharacter:
-                        print(f'Found non character code(s): {cp}', file=sys.stderr)
-                    elif char.tag == tag_surrogate:
-                        print(f'Found surrogate code(s): {cp}', file=sys.stderr)
-                    else:
-                        print(f'Found miscellaneous {char.tag}', file=sys.stderr)
-                    continue
-
-                name = get_name(char)
-                if not name:
-                    print(f'Found no character(s): {cp}', file=sys.stderr)
-                    continue
-                try:
-                    if int(cp, 16) == 0:
-                        char = None
-                    else:
-                        char = chr(int(cp, 16))
-                except ValueError as e:
-                    print(f'Invalid character(s) {cp} ({name})', file=sys.stderr)
-                    continue
-
-                if len(cp) > 0:
-                        value_code = f'"{cp}"'
-                        value_name = f'"{name}"'
-                        if char:
-                            escaped_char = str(char).replace('"', '""')
-                            value_char = f'"{escaped_char}"'
-                        else:
+                    try:
+                        if code == 0:
                             value_char = 'NULL'
-                        dml = f'insert into char(code, name, char) values({value_code}, {value_name}, {value_char})'
-                        cur.execute(dml)
-                        count = count + 1
+                        else:
+                            escaped_char = str(chr(code)).replace('"', '""')
+                            value_char = f'"{escaped_char}"'
+                    except ValueError as e:
+                        print(f'Invalid character {code:X} ({name})', file=sys.stderr)
+                        continue
+
+                    dml = f'insert into char(code, name, char) values({value_code}, {value_name}, {value_char})'
+                    cur.execute(dml)
+                    count = count + 1
 
             conn.commit()
             print(f'Stored {count} characters', file=sys.stderr)

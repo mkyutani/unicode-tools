@@ -2,24 +2,40 @@
 
 import errno
 import io
+import re
 import sys
 
 from .db import Connection, Cursor
+
+def get_code_range(fragment):
+    if '-' in fragment:
+        m = re.match('([0-9A-Fa-f]+)-([0-9A-Fa-f]+)', fragment)
+        min = int(m.group(1), 16)
+        max = int(m.group(2), 16)
+        r = (min, max)
+    else:
+        m = re.match('[0-9A-Fa-f]+', fragment)
+        r = int(fragment, 16)
+    return r
 
 def search(fragment, by_code=False, short=False):
     with Connection() as conn:
         with Cursor(conn) as cur:
             if by_code:
-                cond = f'where code = "{fragment.upper()}"'
+                code_range = get_code_range(fragment)
+                if type(code_range) is tuple:
+                    cond = f'where code >= {code_range[0]} and code <= {code_range[1]} order by code'
+                else:
+                    cond = f'where code = {code_range}'
             else:
-                cond = f'where name like "%{fragment.upper()}%"'
+                cond = f'where name like "%{fragment.upper()}%" order by code'
             dml = f'select * from char {cond}'
             cur.execute(dml)
             for (code, name, char) in cur.fetchall():
                 if short:
                     print(f'{char}', end='')
                 else:
-                    print(f'{char} {code} {name}')
+                    print(f'{char} {code:X} {name}')
 
 def ucsearch():
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
