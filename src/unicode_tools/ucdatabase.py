@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
 
 import io
-import json
 import os
-import re
 import requests
 import sys
 import tempfile
 import zipfile
 import xml.etree.ElementTree as et
 
+from .db import Database, Connection, Cursor
+
 unicode_zip_url = 'https://www.unicode.org/Public/15.0.0/ucdxml/ucd.all.flat.zip'
 unicode_zip_filename = 'ucd.all.flat.zip'
 unicode_xml_filename = 'ucd.all.flat.xml'
-unicode_database_filename = 'unicode_database.json'
-unicode_database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../../../share/applications/{unicode_database_filename}'))
-unicode_database_zip_path = unicode_database_path + '.zip'
 
 namespace = '{http://www.unicode.org/ns/2003/ucd/1.0}'
 tag_ucd = namespace + 'ucd'
@@ -28,7 +25,6 @@ tag_surrogate = namespace + 'surrogate'
 tag_name_alias = namespace + 'name-alias'
 
 def get():
-
     zip_filepath = '(Not assigned)'
 
     try:
@@ -98,11 +94,9 @@ def get_name(char):
                 value.append(alias_name.upper())
     return '; '.join(value)
 
-def analyze(xml_list):
+def store(xml_list):
     if not xml_list:
         return None
-
-    unicode_set = {}
 
     root = et.parse(io.BytesIO(xml_list)).getroot()
     if root.tag != tag_ucd:
@@ -111,117 +105,66 @@ def analyze(xml_list):
 
     description = root.find(tag_description)
     repertoire = root.find(tag_repertoire)
-    for char in repertoire:
-        cp = get_cp(char)
 
-        if char.tag != tag_char:
-            if char.tag == tag_reserved:
-                print(f'Found reserved code(s): {cp}', file=sys.stderr)
-            elif char.tag == tag_noncharacter:
-                print(f'Found non character code(s): {cp}', file=sys.stderr)
-            elif char.tag == tag_surrogate:
-                print(f'Found surrogate code(s): {cp}', file=sys.stderr)
-            else:
-                print(f'Found miscellaneous {char.tag}', file=sys.stderr)
-            continue
+    with Connection() as conn:
+        with Cursor(conn) as cur:
+            count = 0
+            for char in repertoire:
+                cp = get_cp(char)
 
-        name = get_name(char)
-        if not name:
-            print(f'Found no character(s): {cp}', file=sys.stderr)
-            continue
-        try:
-            char = chr(int(cp, 16))
-        except ValueError as e:
-            print(f'Invalid character(s) {cp} ({name})', file=sys.stderr)
-            continue
+                if char.tag != tag_char:
+                    if char.tag == tag_reserved:
+                        print(f'Found reserved code(s): {cp}', file=sys.stderr)
+                    elif char.tag == tag_noncharacter:
+                        print(f'Found non character code(s): {cp}', file=sys.stderr)
+                    elif char.tag == tag_surrogate:
+                        print(f'Found surrogate code(s): {cp}', file=sys.stderr)
+                    else:
+                        print(f'Found miscellaneous {char.tag}', file=sys.stderr)
+                    continue
 
-        if len(cp) > 0:
-            unicode_set.update({
-                cp: {
-                    'name': name,
-                    'code': cp,
-                    'char': char
-                }
-            })
+                name = get_name(char)
+                if not name:
+                    print(f'Found no character(s): {cp}', file=sys.stderr)
+                    continue
+                try:
+                    if int(cp, 16) == 0:
+                        char = None
+                    else:
+                        char = chr(int(cp, 16))
+                except ValueError as e:
+                    print(f'Invalid character(s) {cp} ({name})', file=sys.stderr)
+                    continue
 
-    unicode_database = []
-    
-    for u in unicode_set:
-        unicode_database.append(
-            {
-                'cd': unicode_set[u]['code'],
-                'n': unicode_set[u]['name'],
-                'c': unicode_set[u]['char']
-            }
-        )
+                if len(cp) > 0:
+                        value_code = f'"{cp}"'
+                        value_name = f'"{name}"'
+                        if char:
+                            escaped_char = str(char).replace('"', '""')
+                            value_char = f'"{escaped_char}"'
+                        else:
+                            value_char = 'NULL'
+                        dml = f'insert into char(code, name, char) values({value_code}, {value_name}, {value_char})'
+                        cur.execute(dml)
+                        count = count + 1
 
-    print('Analyzed unicode zip successfully', file=sys.stderr)
+            conn.commit()
+            print(f'Stored {count} characters', file=sys.stderr)
 
-    return unicode_database
+    return count
 
-def save(unicode_database):
-    if not unicode_database:
-        return
-
-    try:
-        dirname = os.path.dirname(unicode_database_path)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname, exist_ok=True)
-
-        with open(unicode_database_path, 'w') as fout:
-            json_out = {
-                'chars': unicode_database
-            }
-            json.dump(json_out, fout, indent=1)
-
-        print(f'Created unicode database: {unicode_database_path}', file=sys.stderr)
-
-    except Exception as e:
-        print(f'Failed to save unicode database to {unicode_database_path}', file=sys.stderr)
-        print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
-        return
-
-def delete():
-    if os.path.exists(unicode_database_zip_path):
-        os.remove(unicode_database_zip_path)
-        print(f'Deleted unicode database zip: {unicode_database_zip_path}', file=sys.stderr)
-    if os.path.exists(unicode_database_path):
-        os.remove(unicode_database_path)
-        print(f'Deleted unicode database: {unicode_database_path}', file=sys.stderr)
-
-def zip():
-    try:
-        with zipfile.ZipFile(unicode_database_zip_path, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zip:
-            zip.write(unicode_database_path, arcname=unicode_database_filename)
-            print(f'Archived unicode database: {unicode_database_zip_path}', file=sys.stderr)
-
-        os.remove(unicode_database_path)
-
-    except Exception as e:
-        print(f'Failed to archive unicode database {unicode_database_path}', file=sys.stderr)
-        print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
-
-def uccreatedatabase():
+def wrap_io():
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", line_buffering=True)
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", line_buffering=True)
 
-    import argparse
-    parser = argparse.ArgumentParser(description='Create database for unicode tool')
-    parser.add_argument('-z', '--zip', action='store_true', help='zip database')
-
-    args = parser.parse_args()
-
-    save(analyze(get()))
-
-    if args.zip:
-        zip()
-
+def uccreatedatabase():
+    wrap_io()
+    Database().create()
+    store(get())
     return 0
 
 def ucdeletedatabase():
-    sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", line_buffering=True)
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", line_buffering=True)
-    delete()
+    wrap_io()
+    Database().delete()
     return 0
