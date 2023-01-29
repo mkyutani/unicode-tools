@@ -18,7 +18,7 @@ def get_code_range(fragment):
         r = int(fragment, 16)
     return r
 
-def search(fragment, by, short=False):
+def search_codes(fragment, by, short=False):
     with Connection() as conn:
         char_list = []
         if by == 'code':
@@ -54,7 +54,7 @@ def search(fragment, by, short=False):
             else:
                 print(f'{char} {code:X} {name}')
 
-def search_flag(regional_code, short=False):
+def search_flags(regional_code, short=False):
     flag = ''
     name = ''
     codes = []
@@ -69,6 +69,12 @@ def search_flag(regional_code, short=False):
         code_value = '+'.join(codes)
         print(f'{flag} {code_value} FLAG OF {name}')
 
+def search(expr, by, short):
+    if by == 'flag':
+        search_flags(expr, short)
+    else:
+        search_codes(expr, by, short)
+
 def ucsearch():
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", line_buffering=True)
@@ -77,30 +83,21 @@ def ucsearch():
     import argparse
     parser = argparse.ArgumentParser(description='Search unicode characters')
     parser.add_argument('expression', nargs='+', metavar='EXPR', help='expression to search')
-    parser.add_argument('-b', '--block', action='store_true', help='by block name')
-    parser.add_argument('-c', '--code', action='store_true', help='by code')
-    parser.add_argument('-f', '--flag', action='store_true', help='search regional flags')
+    group_by = parser.add_mutually_exclusive_group()
+    group_by.add_argument('-b', '--block', action='store_const', dest='by', const='block', help='by block name')
+    group_by.add_argument('-c', '--code', action='store_const', dest='by', const='code', help='by code')
+    group_by.add_argument('-f', '--flag', action='store_const', dest='by', const='flag', help='search regional flags')
     parser.add_argument('-s', '--short', action='store_true', help='print character only')
     parser.add_argument('-I', '--info', nargs=1, default=[None], help='print character information')
 
-    if len(sys.argv) < 2:
-        print(parser.format_usage(), file=sys.stderr)
-        exit(errno.EPERM)
-
     args = parser.parse_args()
 
-    if args.code:
-        by = 'code'
-    elif args.block:
-        by = 'block'
+    if args.by:
+        by = args.by
     else:
         by = None
 
-    if args.flag:
-        for expr in args.expression:
-            search_flag(expr, short=args.short)
-    else:
-        for expr in args.expression:
-            search(expr, by, short=args.short)
+    for expr in args.expression:
+        search(expr, by, short=args.short)
 
     return 0
