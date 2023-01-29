@@ -1,9 +1,9 @@
 import os
 import sqlite3
 import sys
+from pathlib import Path
 
-unicode_sqlite3_database_filename = 'unicode.db'
-unicode_sqlite3_database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../../../share/applications/{unicode_sqlite3_database_filename}'))
+unicode_sqlite3_database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../../../share/applications/unicode.db'))
 
 class Database:
 
@@ -25,8 +25,8 @@ class Database:
                         print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
 
         with Connection() as conn:
-            execute(conn, 'char', 'create table char(code integer primary key, name text, char text)')
-            execute(conn, 'block', 'create table block(name text primary key, first integer, last integer)')
+            execute(conn, 'char', 'create table char(id integer primary key, name text, codetext text, char text, block text)')
+            execute(conn, 'codepoint', 'create table codepoint(char integer, seq integer, code integer, primary key(char, seq))')
 
     def delete(self):
         if not os.path.exists(unicode_sqlite3_database_path):
@@ -62,3 +62,14 @@ class Cursor:
         if self.cur:
             self.cur.close()
             self.cur = None
+
+class AutoID:
+
+    def init(self):
+        self.value = 1
+        return self
+
+    def next(self):
+        value = self.value
+        self.value = self.value + 1
+        return value
