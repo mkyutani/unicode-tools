@@ -60,7 +60,6 @@ def ucsearch():
     group_by.add_argument('-b', '--block', action='store_const', dest='by', const='block', help='by block name')
     group_by.add_argument('-c', '--code', action='store_const', dest='by', const='code', help='by code')
     parser.add_argument('-s', '--short', action='store_true', help='print character only')
-    parser.add_argument('-I', '--info', nargs=1, default=[None], help='print character information')
 
     args = parser.parse_args()
 
