@@ -17,7 +17,7 @@ This tool depends on unicode 15.0 definition files.
 * Search by name.
 
 ```
-$ ucsearch "japanese goblin"
+$ ucsearch goblin
 👺 1F47A JAPANESE GOBLIN
 ```
 
