@@ -21,6 +21,9 @@ $ ucsearch goblin
 👺 1F47A JAPANESE GOBLIN
 ```
 
+`ucsearch` prints character, code point or code point sequence, and name or description.
+Copy characters (even if it seems garbled or character sequences!) and paste it in other intelligent tools, browsers for example, you may get the character.
+
 * Search by code.
 
 ```
