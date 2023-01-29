@@ -2,17 +2,16 @@
 
 import io
 import os
+import re
 import requests
 import sys
 import tempfile
 import zipfile
 import xml.etree.ElementTree as et
+from urllib.parse import urlparse
+from pathlib import Path
 
-from .db import Database, Connection, Cursor
-
-unicode_zip_url = 'https://www.unicode.org/Public/15.0.0/ucdxml/ucd.all.flat.zip'
-unicode_zip_filename = 'ucd.all.flat.zip'
-unicode_xml_filename = 'ucd.all.flat.xml'
+from .db import Database, Connection, Cursor, AutoID
 
 namespace = '{http://www.unicode.org/ns/2003/ucd/1.0}'
 tag_ucd = namespace + 'ucd'
@@ -23,20 +22,24 @@ tag_noncharacter = namespace + 'noncharacter'
 tag_reserved = namespace + 'reserved'
 tag_surrogate = namespace + 'surrogate'
 tag_name_alias = namespace + 'name-alias'
-tag_blocks = namespace + 'blocks'
-tag_block = namespace + 'block'
 
-def get():
+table_char_autoincrement_id = AutoID().init()
+
+def download_ucd(ucd_zip_url):
+    ucd_zip_url_path = Path(urlparse(ucd_zip_url)[2])
+    ucd_zip_filename = ucd_zip_url_path.name
+    ucd_xml_filename = ucd_zip_url_path.with_suffix('.xml').name
+
     zip_filepath = '(Not assigned)'
 
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
 
-            zip_filepath = os.path.join(tmpdir, unicode_zip_filename)
+            zip_filepath = os.path.join(tmpdir, ucd_zip_filename)
 
-            print(f'Downloading {unicode_zip_url} ...', file=sys.stderr)
+            print(f'Downloading {ucd_zip_url} ...', file=sys.stderr)
 
-            res = requests.get(unicode_zip_url, stream=True)
+            res = requests.get(ucd_zip_url, stream=True)
             if res.status_code >= 400:
                 print(f'Fetch error: {res.status_code}', file=sys.stderr)
                 return None
@@ -55,18 +58,18 @@ def get():
             print(f'Downloaded {zip_filepath}', file=sys.stderr)
 
             with zipfile.ZipFile(zip_filepath, 'r') as zip:
-                xml_list = zip.read(unicode_xml_filename)
+                xml_list = zip.read(ucd_xml_filename)
 
             print('Extracted unicode data xml', file=sys.stderr)
 
             return xml_list
 
     except Exception as e:
-        print(f'Failed to store zip from {unicode_zip_url} to {zip_filepath}', file=sys.stderr)
+        print(f'Failed to download zip from {ucd_zip_url} to {zip_filepath}', file=sys.stderr)
         print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
         return None
 
-def get_cp(tag):
+def get_ucd_cp(tag):
     cp = tag.attrib.get('cp')
     first_cp = tag.attrib.get('first-cp')
     last_cp = tag.attrib.get('last-cp')
@@ -84,10 +87,10 @@ def get_cp(tag):
 
     return (min, max)
 
-def get_char_cp(char):
+def get_ucd_char_cp(char):
 
     value = None
-    r = get_cp(char)
+    r = get_ucd_cp(char)
     if r:
         min = r[0]
         max = r[1]
@@ -96,7 +99,6 @@ def get_char_cp(char):
                 code_range = f'{min:X}'
             else:
                 code_range = f'{min:X}-{max:X}'
-            code_range = code_range.upper()
 
             if char.tag == tag_reserved:
                 print(f'Found reserved code(s): {code_range}', file=sys.stderr)
@@ -116,17 +118,17 @@ def get_name(char):
     name = char.attrib.get('na')
     name1 = char.attrib.get('na1')
     if name and len(name) > 0:
-        value.append(name.upper())
+        value.append(name)
     if name1 and len(name1) > 0 and name != name1:
-        value.append(name1.upper())
+        value.append(name1)
     for alias in char:
         if alias.tag == tag_name_alias:
             alias_name = alias.attrib.get('alias')
             if alias_name and len(alias_name) > 0 and alias_name not in value:
-                value.append(alias_name.upper())
+                value.append(alias_name)
     return '; '.join(value)
 
-def store(xml_list):
+def store_ucd(xml_list):
     if not xml_list:
         return None
 
@@ -135,17 +137,16 @@ def store(xml_list):
         print(f'Unexpected XML scheme: {root.tag}', file=sys.stderr)
         return None
 
-    description = root.find(tag_description)
     repertoire = root.find(tag_repertoire)
-    blocks = root.find(tag_blocks)
 
     with Connection() as conn:
         with Cursor(conn) as cur:
             count = 0
             for char in repertoire:
-                code_range = get_char_cp(char)
+                code_range = get_ucd_char_cp(char)
                 for code in code_range:
                     value_code = code
+                    value_code_text = f'"{value_code:X}"'
                     name = get_name(char)
                     if not name:
                         print(f'Found no character: {code:X}', file=sys.stderr)
@@ -162,37 +163,109 @@ def store(xml_list):
                         print(f'Invalid character {code:X} ({name})', file=sys.stderr)
                         continue
 
-                    dml = f'insert into char(code, name, char) values({value_code}, {value_name}, {value_char})'
+                    block = char.attrib.get('blk')
+                    if not block:
+                        print(f'No block name: {code:X}', file=sys.stderr)
+                        value_block = '"(None)"'
+                    else:
+                        value_block = f'"{block}"'
+
+                    id = table_char_autoincrement_id.next()
+                    dml = f'insert into char(id, name, codetext, char, block) values({id}, {value_name}, {value_code_text}, {value_char}, {value_block})'
                     cur.execute(dml)
+                    dml_seq = f'insert into codepoint(char, seq, code) values({id}, 1, {value_code})'
+                    cur.execute(dml_seq)
                     count = count + 1
 
             conn.commit()
             print(f'Stored {count} characters', file=sys.stderr)
 
+def download_emoji(emoji_txt_url):
+    try:
+        res = requests.get(emoji_txt_url)
+        if res.status_code >= 400:
+            print(f'Fetch error: {res.status_code}', file=sys.stderr)
+            return None
+
+        content_type = res.headers['Content-Type']
+        if  not ('text/plain' in content_type and 'charset=utf-8' in content_type):
+            print(f'Invalid content type: {content_type}')
+            return None
+
+        return res.text.splitlines()
+
+    except Exception as e:
+        print(f'Failed to download emoji from {ucd_zip_url}', file=sys.stderr)
+        print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
+        return None
+
+def store_emoji(emoji_sequences):
+    if not emoji_sequences:
+        return
+
+    emoji_sequence_line_pattern = re.compile('^(.+);(.+);([^#]+)#')
+    emoji_sequence_cp_pattern = re.compile('([0-9A-Fa-f]+)')
+    emoji_sequence_mult_pattern = re.compile('([0-9A-Fa-f]+)')
+    emoji_sequence_continuous_pattern = re.compile('([0-9A-Fa-f]+)\.\.([0-9A-Fa-f]+)')
+
+    with Connection() as conn:
         with Cursor(conn) as cur:
             count = 0
-            for block in blocks:
-                r = get_cp(block)
-                if not r:
+            for sequence in emoji_sequences:
+                if len(sequence) == 0 or sequence.startswith('#'):
+                    continue
+                emoji = emoji_sequence_line_pattern.match(sequence)
+                emoji_codes = emoji.group(1).strip()
+                emoji_type = emoji.group(2).strip()
+                emoji_name = emoji.group(3).strip()
+
+                cp_list = []
+                cp = re.fullmatch(emoji_sequence_cp_pattern, emoji_codes)
+                if cp:
+                    cp_list.append(int(emoji_codes, 16))
+                else:
+                    cp = re.match(emoji_sequence_continuous_pattern, emoji_codes)
+                    if cp:
+                        min = int(cp.group(1), 16)
+                        max = int(cp.group(2), 16)
+                        cp_list.extend(list(range(min, max + 1)))
+                    else:
+                        seq = []
+                        for cp in re.finditer(emoji_sequence_mult_pattern, emoji_codes):
+                            seq.append(int(cp.group(1), 16))
+                        cp_list.append(seq)
+                if len(cp_list) == 0:
+                    print(f'Failed to get code points: {emoji_codes}, {emoji_name}', file=sys.stderr)
                     continue
 
-                min = r[0]
-                max = r[1]
-                name = block.attrib.get('name')
-                if not name:
-                    print(f'No name found in block: {min:X}-{max:X}', file=sys.stderr)
-                    continue
+                value_name = f'"{emoji_name}"'
+                value_code_text = f'"{emoji_codes}"'
+                value_block = f'"{emoji_type}"'
+                for code in cp_list:
+                    if type(code) is int:
+                        value_code_text = f'"{code:X}"'
+                        char = chr(code)
+                        value_char = f'"{char}"'
+                    else:
+                        char = ''
+                        for c in code:
+                            char = char + chr(c)
+                        value_char = f'"{char}"'
 
-                escaped_name = name.replace('"', '""')
-                value_name = f'"{escaped_name}"'
-
-                dml = f'insert into block(name, first, last) values({value_name}, {min}, {max})'
-                print(dml)
-                cur.execute(dml)
-                count = count + 1
+                    id = table_char_autoincrement_id.next()
+                    dml = f'insert into char(id, name, codetext, char, block) values({id}, {value_name}, {value_code_text}, {value_char}, {value_block})'
+                    cur.execute(dml)
+                    if type(code) is int:
+                        dml_seq = f'insert into codepoint(char, seq, code) values({id}, 1, {code})'
+                        cur.execute(dml_seq)
+                    else:
+                        for i, c in enumerate(code):
+                            dml_seq = f'insert into codepoint(char, seq, code) values({id}, {i}, {c})'
+                            cur.execute(dml_seq)
+                    count = count + 1
 
             conn.commit()
-            print(f'Stored {count} blocks', file=sys.stderr)
+            print(f'Stored {count} emoji characters', file=sys.stderr)
 
 def wrap_io():
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
@@ -202,7 +275,9 @@ def wrap_io():
 def uccreatedatabase():
     wrap_io()
     Database().create()
-    store(get())
+    store_ucd(download_ucd('https://www.unicode.org/Public/15.0.0/ucdxml/ucd.all.flat.zip'))
+    store_emoji(download_emoji('https://www.unicode.org/Public/emoji/15.0/emoji-sequences.txt'))
+    store_emoji(download_emoji('https://www.unicode.org/Public/emoji/15.0/emoji-zwj-sequences.txt'))
     return 0
 
 def ucdeletedatabase():
