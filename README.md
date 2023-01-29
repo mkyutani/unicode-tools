@@ -49,7 +49,7 @@ In this case, copy first two characters "🇳🇴" (\u1f1f3\u1f1f4) and paste in
 
 * Other options
 
-  * `ucsearch` with ``--short`` option prints short format.
+  * `ucsearch` with ``--short`` option prints results in short format.
 
 ```
 $ ucsearch --short --block latin
