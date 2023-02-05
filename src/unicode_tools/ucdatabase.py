@@ -205,7 +205,7 @@ def store_emoji(emoji_sequences):
 
     emoji_sequence_line_pattern = re.compile('^(.+);(.+);([^#]+)#')
     emoji_sequence_cp_pattern = re.compile('([0-9A-Fa-f]+)')
-    emoji_sequence_mult_pattern = re.compile('([0-9A-Fa-f]+)')
+    emoji_sequence_multi_pattern = re.compile('([0-9A-Fa-f]+)')
     emoji_sequence_continuous_pattern = re.compile('([0-9A-Fa-f]+)\.\.([0-9A-Fa-f]+)')
 
     with Connection() as conn:
@@ -231,7 +231,7 @@ def store_emoji(emoji_sequences):
                         cp_list.extend(list(range(min, max + 1)))
                     else:
                         seq = []
-                        for cp in re.finditer(emoji_sequence_mult_pattern, emoji_codes):
+                        for cp in re.finditer(emoji_sequence_multi_pattern, emoji_codes):
                             seq.append(int(cp.group(1), 16))
                         cp_list.append(seq)
                 if len(cp_list) == 0:
