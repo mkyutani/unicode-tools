@@ -4,6 +4,7 @@ import io
 import os
 import re
 import requests
+import sqlite3
 import sys
 import tempfile
 import zipfile
@@ -252,17 +253,20 @@ def store_emoji(emoji_sequences):
                             char = char + chr(c)
                         value_char = f'"{char}"'
 
-                    id = table_char_autoincrement_id.next()
-                    dml = f'insert into char(id, name, codetext, char, block) values({id}, {value_name}, {value_code_text}, {value_char}, {value_block})'
-                    cur.execute(dml)
-                    if type(code) is int:
-                        dml_seq = f'insert into codepoint(char, seq, code) values({id}, 1, {code})'
-                        cur.execute(dml_seq)
-                    else:
-                        for i, c in enumerate(code):
-                            dml_seq = f'insert into codepoint(char, seq, code) values({id}, {i}, {c})'
+                    try:
+                        id = table_char_autoincrement_id.next()
+                        dml = f'insert into char(id, name, codetext, char, block) values({id}, {value_name}, {value_code_text}, {value_char}, {value_block})'
+                        cur.execute(dml)
+                        if type(code) is int:
+                            dml_seq = f'insert into codepoint(char, seq, code) values({id}, 1, {code})'
                             cur.execute(dml_seq)
-                    count = count + 1
+                        else:
+                            for i, c in enumerate(code):
+                                dml_seq = f'insert into codepoint(char, seq, code) values({id}, {i}, {c})'
+                                cur.execute(dml_seq)
+                        count = count + 1
+                    except sqlite3.IntegrityError as e:
+                        print(f'Already registered: {value_code_text} {value_name}', file=sys.stderr)
 
             conn.commit()
             print(f'Stored {count} emoji characters', file=sys.stderr)

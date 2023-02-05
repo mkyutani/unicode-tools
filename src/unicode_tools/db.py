@@ -27,6 +27,7 @@ class Database:
         with Connection() as conn:
             execute(conn, 'char', 'create table char(id integer primary key, name text, codetext text, char text, block text)')
             execute(conn, 'codepoint', 'create table codepoint(char integer, seq integer, code integer, primary key(char, seq))')
+            execute(conn, 'char_index', 'create unique index char_index on char(codetext)')
 
     def delete(self):
         if not os.path.exists(unicode_sqlite3_database_path):
