@@ -195,7 +195,7 @@ def download_emoji(emoji_txt_url):
         return res.text.splitlines()
 
     except Exception as e:
-        print(f'Failed to download emoji from {ucd_zip_url}', file=sys.stderr)
+        print(f'Failed to download emoji from {emoji_txt_url}', file=sys.stderr)
         print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
         return None
 
