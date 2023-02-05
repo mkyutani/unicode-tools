@@ -27,17 +27,17 @@ def search(fragment, by, short=False):
                 cond = f'where cp.code >= {code_range[0]} and cp.code <= {code_range[1]}'
             else:
                 cond = f'where cp.code = {code_range}'
-            dml = f'select char.id, char.codetext, char.name, char.char from char inner join codepoint as cp on char.id = cp.char {cond} order by char.id'
+            dml = f'select char.id, char.codetext, char.name, char.char from char inner join codepoint as cp on char.id = cp.char {cond} order by char.codetext'
             with Cursor(conn) as cur:
                 cur.execute(dml)
                 char_list = cur.fetchall()
         elif by == 'block':
-            dml = f'select char.id, char.codetext, char.name, char.char from char where block like "%{fragment}%" order by char.id'
+            dml = f'select char.id, char.codetext, char.name, char.char from char where block like "%{fragment}%" order by char.codetext'
             with Cursor(conn) as cur:
                 cur.execute(dml)
                 char_list = cur.fetchall()
         else:
-            dml = f'select id, codetext, name, char from char where name like "%{fragment}%" order by id'
+            dml = f'select id, codetext, name, char from char where name like "%{fragment}%" order by codetext'
             with Cursor(conn) as cur:
                 cur.execute(dml)
                 char_list = cur.fetchall()
