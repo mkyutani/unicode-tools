@@ -30,7 +30,8 @@ def search(fragment, by, delimiter, strict=False, utf8=False):
             dml = ' '.join(['select char.id, char.codetext, char.name, char.char from char inner join codepoint as cp on char.id = cp.char', cond, 'order by char.char'])
         else:
             if strict:
-                matched = f'= "{fragment}"'
+                by = f'upper({by})'
+                matched = f'= "{fragment.upper()}"'
             else:
                 matched = f'like "%{fragment}%"'
             dml = ' '.join(['select char.id, char.codetext, char.name, char.char from char', 'where', by, matched, 'order by char.char'])

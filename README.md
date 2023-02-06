@@ -49,7 +49,7 @@ In this case, copy first two characters "🇳🇴" (\u1f1f3\u1f1f4) and paste in
 
 ### Options
 
-* ``--strict``: searches characters completely matched with specified name.
+* ``--strict``: searches characters completely matched (but case insensitive) with specified name.
 
 ```
 $ ucsearch snowman
@@ -58,6 +58,7 @@ $ ucsearch snowman
 ⛄ 26C4 SNOWMAN WITHOUT SNOW
 ⛇ 26C7 BLACK SNOWMAN
 $ ucsearch --strict snowman
+☃ 2603 SNOWMAN
 ☃️ 2603 FE0F snowman
 ```
 
