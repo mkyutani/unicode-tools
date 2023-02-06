@@ -288,3 +288,8 @@ def ucdeletedatabase():
     wrap_io()
     Database().delete()
     return 0
+
+def ucdatabaseinfo():
+    wrap_io()
+    print(Database().get_path())
+    return 0

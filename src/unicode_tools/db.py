@@ -36,6 +36,9 @@ class Database:
             os.remove(unicode_sqlite3_database_path)
             print(f'Deleted database file: {unicode_sqlite3_database_path}', file=sys.stderr)
 
+    def get_path(self):
+        return unicode_sqlite3_database_path
+
 class Connection:
 
     def __init__(self):
