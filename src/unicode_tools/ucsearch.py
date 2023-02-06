@@ -72,7 +72,6 @@ def ucsearch():
     else:
         by = None
 
-    for expr in args.expression:
-        search(expr, by, short=args.short, utf8=args.utf8)
+    search(args.expression, by, short=args.short, utf8=args.utf8)
 
     return 0
