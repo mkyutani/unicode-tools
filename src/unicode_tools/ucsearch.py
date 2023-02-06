@@ -18,7 +18,7 @@ def get_code_range(fragment):
         r = int(fragment, 16)
     return r
 
-def search(fragment, by, short=False):
+def search(fragment, by, short=False, utf8=False):
     with Connection() as conn:
         char_list = []
         if by == 'code':
@@ -27,22 +27,25 @@ def search(fragment, by, short=False):
                 cond = f'where cp.code >= {code_range[0]} and cp.code <= {code_range[1]}'
             else:
                 cond = f'where cp.code = {code_range}'
-            dml = f'select char.id, char.codetext, char.name, char.char from char inner join codepoint as cp on char.id = cp.char {cond} order by char.codetext'
+            dml = f'select char.id, char.codetext, char.name, char.char from char inner join codepoint as cp on char.id = cp.char {cond} order by char.char'
             with Cursor(conn) as cur:
                 cur.execute(dml)
                 char_list = cur.fetchall()
         elif by == 'block':
-            dml = f'select char.id, char.codetext, char.name, char.char from char where block like "%{fragment}%" order by char.codetext'
+            dml = f'select char.id, char.codetext, char.name, char.char from char where block like "%{fragment}%" order by char.char'
             with Cursor(conn) as cur:
                 cur.execute(dml)
                 char_list = cur.fetchall()
         else:
-            dml = f'select id, codetext, name, char from char where name like "%{fragment}%" order by codetext'
+            dml = f'select id, codetext, name, char from char where name like "%{fragment}%" order by char'
             with Cursor(conn) as cur:
                 cur.execute(dml)
                 char_list = cur.fetchall()
 
         for (id, codetext, name, char) in char_list:
+            if utf8:
+                codetext = ' '.join(f'{u:X}' for u in [int.from_bytes(chr(int(c, 16)).encode(), 'big') for c in codetext.split(' ')])
+
             if short:
                 print(f'{char}', end='')
             else:
@@ -60,6 +63,7 @@ def ucsearch():
     group_by.add_argument('-b', '--block', action='store_const', dest='by', const='block', help='by block name')
     group_by.add_argument('-c', '--code', action='store_const', dest='by', const='code', help='by code')
     parser.add_argument('-s', '--short', action='store_true', help='print character only')
+    parser.add_argument('-u', '--utf8', action='store_true', help='print utf8')
 
     args = parser.parse_args()
 
@@ -69,6 +73,6 @@ def ucsearch():
         by = None
 
     for expr in args.expression:
-        search(expr, by, short=args.short)
+        search(expr, by, short=args.short, utf8=args.utf8)
 
     return 0
