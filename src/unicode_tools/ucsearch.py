@@ -58,7 +58,7 @@ def ucsearch():
 
     import argparse
     parser = argparse.ArgumentParser(description='Search unicode characters')
-    parser.add_argument('expression', nargs='+', metavar='EXPR', help='expression to search')
+    parser.add_argument('expression', metavar='EXPR', help='expression to search')
     group_by = parser.add_mutually_exclusive_group()
     group_by.add_argument('-b', '--block', action='store_const', dest='by', const='block', help='by block name')
     group_by.add_argument('-c', '--code', action='store_const', dest='by', const='code', help='by code')
