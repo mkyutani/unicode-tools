@@ -41,33 +41,59 @@ $ ucsearch --code 2200-2207
 * Search by block.
 
 ```
-$ $ ucsearch --block flag | grep -i norway
+$ ucsearch --block flag | grep -i norway
 🇳🇴 1F1F3 1F1F4 flag: Norway
 ```
 
 In this case, copy first two characters "🇳🇴" (\u1f1f3\u1f1f4) and paste in browser (ex. twitter's tweet textbox), you can see the national flag of Norway.
 
-* Other options
+### Options
 
-  * `ucsearch` with ``--short`` option prints results in short format.
+* ``--strict``: searches characters completely matched with specified name.
 
 ```
-$ ucsearch --short --block latin
- ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǝǞǟǠǡǢǣǤǥǦǧǨǩǪǫǬǭǮǯǰǱǲǳǴǵǶǷǸǹǺǻǼǽǾǿȀȁȂȃȄȅȆȇȈȉȊȋȌȍȎȏȐȑȒȓȔȕȖȗȘșȚțȜȝȞȟȠȡȢȣȤȥȦȧȨȩȪȫȬȭȮȯȰȱȲȳȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏḀḁḂḃḄḅḆḇḈḉḊḋḌḍḎḏḐḑḒḓḔḕḖḗḘḙḚḛḜḝḞḟḠḡḢḣḤḥḦḧḨḩḪḫḬḭḮḯḰḱḲḳḴḵḶḷḸḹḺḻḼḽḾḿṀṁṂṃṄṅṆṇṈṉṊṋṌṍṎṏṐṑṒṓṔṕṖṗṘṙṚṛṜṝṞṟṠṡṢṣṤṥṦṧṨṩṪṫṬṭṮṯṰṱṲṳṴṵṶṷṸṹṺṻṼṽṾṿẀẁẂẃẄẅẆẇẈẉẊẋẌẍẎẏẐẑẒẓẔẕẖẗẘẙẚẛẜẝẞẟẠạẢảẤấẦầẨẩẪẫẬậẮắẰằẲẳẴẵẶặẸẹẺẻẼẽẾếỀềỂểỄễỆệỈỉỊịỌọỎỏỐốỒồỔổỖỗỘộỚớỜờỞởỠỡỢợỤụỦủỨứỪừỬửỮữỰựỲỳỴỵỶỷỸỹỺỻỼỽỾỿⱠⱡⱢⱣⱤⱥⱦⱧⱨⱩⱪⱫⱬⱭⱮⱯⱰⱱⱲⱳⱴⱵⱶⱷⱸⱹⱺⱻⱼⱽⱾⱿ꜠꜡ꜢꜣꜤꜥꜦꜧꜨꜩꜪꜫꜬꜭꜮꜯꜰꜱꜲꜳꜴꜵꜶꜷꜸꜹꜺꜻꜼꜽꜾꜿꝀꝁꝂꝃꝄꝅꝆꝇꝈꝉꝊꝋꝌꝍꝎꝏꝐꝑꝒꝓꝔꝕꝖꝗꝘꝙꝚꝛꝜꝝꝞꝟꝠꝡꝢꝣꝤꝥꝦꝧꝨꝩꝪꝫꝬꝭꝮꝯꝰꝱꝲꝳꝴꝵꝶꝷꝸꝹꝺꝻꝼꝽꝾꝿꞀꞁꞂꞃꞄꞅꞆꞇꞈ꞉꞊ꞋꞌꞍꞎꞏꞐꞑꞒꞓꞔꞕꞖꞗꞘꞙꞚꞛꞜꞝꞞꞟꞠꞡꞢꞣꞤꞥꞦꞧꞨꞩꞪꞫꞬꞭꞮꞯꞰꞱꞲꞳꞴꞵꞶꞷꞸꞹꞺꞻꞼꞽꞾꞿꟀꟁꟂꟃꟄꟅꟆꟇꟈꟉꟊꟐꟑꟓꟕꟖꟗꟘꟙꟲꟳꟴꟵꟶꟷꟸꟹꟺꟻꟼꟽꟾꟿꬰꬱꬲꬳꬴꬵꬶꬷꬸꬹꬺꬻꬼꬽꬾꬿꭀꭁꭂꭃꭄꭅꭆꭇꭈꭉꭊꭋꭌꭍꭎꭏꭐꭑꭒꭓꭔꭕꭖꭗꭘꭙꭚ꭛ꭜꭝꭞꭟꭠꭡꭢꭣꭤꭥꭦꭧꭨꭩ꭪꭫𐞀𐞁𐞂𐞃𐞄𐞅𐞇𐞈𐞉𐞊𐞋𐞌𐞍𐞎𐞏𐞐𐞑𐞒𐞓𐞔𐞕𐞖𐞗𐞘𐞙𐞚𐞛𐞜𐞝𐞞𐞟𐞠𐞡𐞢𐞣𐞤𐞥𐞦𐞧𐞨
-𐞩𐞪𐞫𐞬𐞭𐞮𐞯𐞰𐞲𐞳𐞴𐞵𐞶𐞷𐞸𐞹𐞺𝼀𝼁𝼂𝼃𝼄𝼅𝼆𝼇𝼈𝼉𝼊𝼋𝼌𝼍𝼎𝼏𝼐𝼑𝼒𝼓𝼔𝼕𝼖𝼗𝼘𝼙𝼚𝼛𝼜𝼝𝼞𝼥𝼦𝼧𝼨𝼩𝼪                                                      
+$ ucsearch snowman
+☃ 2603 SNOWMAN
+☃️ 2603 FE0F snowman
+⛄ 26C4 SNOWMAN WITHOUT SNOW
+⛇ 26C7 BLACK SNOWMAN
+$ ucsearch --strict snowman
+☃️ 2603 FE0F snowman
+```
+
+* ``--utf8``: prints utf-8 codes instead of utf-32.
+
+```
+$ ucsearch goblin
+👺 1F47A JAPANESE GOBLIN
+$ ucsearch --utf8 goblin
+👺 F09F91BA JAPANESE GOBLIN
+```
+
+* ``--delimiter`` with delimiter: prints with specified delimiter instead of space (' ').
+
+```
+$ ucsearch fireworks
+🎆 1F386 FIREWORKS
+$ ucsearch --delimiter : fireworks
+🎆:1F386:FIREWORKS
+$ ucsearch --delimiter=: fireworks
+🎆:1F386:FIREWORKS
+$ ucsearch -d: fireworks
+🎆:1F386:FIREWORKS
 ```
 
 ## Install and initialize tools
 
 Install by `pip3`.
 
-```shell
+```
 $ pip3 install git+https://github.com/mkyutani/unicode-tools.git
 ```
 
 `uccreatedatabase` command initializes unicode database.
 
-```shell
+```
 $ uccreatedatabase
 ```
 
@@ -77,7 +103,7 @@ This command creates a file `~/.local/share/applications/unicode.db`, which is a
 
 `ucdeletedatabase` removes unicode database.
 
-```shell
+```
 $ ucdeletedatabase
 ```
 
