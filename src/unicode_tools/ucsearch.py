@@ -18,7 +18,7 @@ def get_code_range(fragment):
         r = int(fragment, 16)
     return r
 
-def search(fragment, by, short=False, utf8=False):
+def search(fragment, by, delimiter, short=False, utf8=False):
     with Connection() as conn:
         char_list = []
         if by == 'code':
@@ -43,13 +43,16 @@ def search(fragment, by, short=False, utf8=False):
                 char_list = cur.fetchall()
 
         for (id, codetext, name, char) in char_list:
+            if not char:
+                char = str(char)
+
             if utf8:
                 codetext = ' '.join(f'{u:X}' for u in [int.from_bytes(chr(int(c, 16)).encode(), 'big') for c in codetext.split(' ')])
 
             if short:
                 print(f'{char}', end='')
             else:
-                print(f'{char} {codetext} {name}')
+                print(delimiter.join([char, codetext, name]))
 
 def ucsearch():
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
@@ -64,6 +67,7 @@ def ucsearch():
     group_by.add_argument('-c', '--code', action='store_const', dest='by', const='code', help='by code')
     parser.add_argument('-s', '--short', action='store_true', help='print character only')
     parser.add_argument('-u', '--utf8', action='store_true', help='print utf8')
+    parser.add_argument('-d', '--delimiter', default=' ', help='output delimiter')
 
     args = parser.parse_args()
 
@@ -72,6 +76,6 @@ def ucsearch():
     else:
         by = None
 
-    search(args.expression, by, short=args.short, utf8=args.utf8)
+    search(args.expression, by, args.delimiter, short=args.short, utf8=args.utf8)
 
     return 0
