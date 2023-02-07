@@ -47,6 +47,8 @@ $ ucsearch --block flag | grep -i norway
 
 In this case, copy first two characters "🇳🇴" (\u1f1f3\u1f1f4) and paste in browser (ex. twitter's tweet textbox), you can see the national flag of Norway.
 
+![Sample to paste Norway's flag in twitter](img/paste-flag-Norway-in-twitter.png)
+
 ### Options
 
 * ``--strict``: searches characters completely matched (but case insensitive) with specified name.
