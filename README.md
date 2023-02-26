@@ -14,7 +14,7 @@ This tool depends on unicode 15.0 definition files.
 
 ## Usage
 
-* Search by name.
+### Search by name
 
 ```
 $ ucsearch goblin
@@ -22,9 +22,8 @@ $ ucsearch goblin
 ```
 
 `ucsearch` prints character, code point or code point sequence, and name or description.
-Copy characters (even if it seems garbled or character sequences!) and paste it in other intelligent tools, browsers for example, you may get the character.
 
-* Search by code.
+### Search by code
 
 ```
 $ ucsearch --code 2200-2207
@@ -38,16 +37,28 @@ $ ucsearch --code 2200-2207
 ∇ 2207 NABLA
 ```
 
-* Search by block.
+### Search by block
 
 ```
 $ ucsearch --block flag | grep -i norway
 🇳🇴 1F1F3 1F1F4 flag: Norway
 ```
 
-In this case, copy first two characters "🇳🇴" (\u1f1f3\u1f1f4) and paste in browser (ex. twitter's tweet textbox), you can see the national flag of Norway.
+### Applications not supporting complex emoji and zwj sequences
+
+In the case described above, you may see two letters instead of the national flag of Norway in your terminal.
+
+![Sample to copy Norway's flag in twitter](img/paste-flag-Norway-without-fonts.png)
+
+Even if so, when you copy first two letters "🇳🇴" (\u1f1f3\u1f1f4) and paste them in browser, twitter's tweet textbox for example, you can see the national flag of Norway.
 
 ![Sample to paste Norway's flag in twitter](img/paste-flag-Norway-in-twitter.png)
+
+The same applies to zwf sequences.
+
+![Sample to copy polar bear in twitter](img/paste-polar-bear-without-fonts.png)
+
+![Sample to paste polar bear in twitter](img/paste-polar-bear-in-twitter.png)
 
 ### Options
 
