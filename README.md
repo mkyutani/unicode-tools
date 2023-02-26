@@ -122,3 +122,12 @@ $ ucdeletedatabase
 ```
 
 This command removes `~/.local/share/applications/unicode.db`.
+
+## Print database information
+
+`ucdatabaseinfo` prints database information.
+
+```
+$ ucdatabaseinfo
+/home/username/.local/share/applications/unicode.db
+```
