@@ -16,7 +16,7 @@ This tool depends on unicode 15.0 definition files.
 
 ### Simple search by name
 
-`ucsearch` searches characters by name in local unicode database created by `uccreatedatabse` (see ![Install and initialize tools section](#install-and-initialize-tools)), and prints character, code point or code point sequence, and name or description.
+`ucsearch` searches characters by name in local unicode database created by `uccreatedatabase` (see ![Install and initialize tools section](#install-and-initialize-tools)), and prints character, code point or code point sequence, and name or description.
 
 ![Simple search](img/ucsearch-goblin.png)
 
@@ -85,7 +85,7 @@ Prints the first result only.  This option may be used in pipe.
 
 Prints result with the specified delimiter instead of space (0x20).
 
-![Print with --demiliter](img/ucsearch-goblin-delimiter.png)
+![Print with --delimiter](img/ucsearch-goblin-delimiter.png)
 
 ## Install and initialize tools
 
