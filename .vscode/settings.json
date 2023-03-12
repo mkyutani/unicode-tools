@@ -5,6 +5,7 @@
         "fzip",
         "noncharacter",
         "uccreatedatabase",
+        "ucdatabaseinfo",
         "ucdeletedatabase",
         "ucsearch"
     ]
