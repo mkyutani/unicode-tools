@@ -25,7 +25,7 @@ class Database:
                         print(f'{type(e).__name__}: {str(e)}', file=sys.stderr)
 
         with Connection() as conn:
-            execute(conn, 'char', 'create table char(id integer primary key, name text, codetext text, char text, block text)')
+            execute(conn, 'char', 'create table char(id integer primary key, name text, detail text, codetext text, char text, block text)')
             execute(conn, 'codepoint', 'create table codepoint(char integer, seq integer, code integer, primary key(char, seq))')
             execute(conn, 'char_index', 'create unique index char_index on char(codetext)')
 

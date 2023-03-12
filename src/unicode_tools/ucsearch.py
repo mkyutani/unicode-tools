@@ -24,23 +24,24 @@ def search(fragment, by, delimiter, strict=False, first=False, format=None):
 
     with Connection() as conn:
         char_list = []
+        sel = 'select char.id, char.codetext, char.name, char.detail, char.char from char'
         if by == 'code':
             code_range = get_code_range(fragment)
             if type(code_range) is tuple:
                 cond = f'where cp.code >= {code_range[0]} and cp.code <= {code_range[1]}'
             else:
                 cond = f'where cp.code = {code_range}'
-            dml = ' '.join(['select char.id, char.codetext, char.name, char.char from char inner join codepoint as cp on char.id = cp.char', cond, 'order by char.char'])
+            dml = ' '.join([sel, 'inner join codepoint as cp on char.id = cp.char', cond, 'order by char.char'])
         elif by == 'char':
             cond = f'where char.char = "{fragment}"'
-            dml = ' '.join(['select char.id, char.codetext, char.name, char.char from char', cond])
+            dml = ' '.join([sel, cond])
         else:
             if strict:
                 by = f'upper({by})'
                 matched = f'= "{fragment.upper()}"'
             else:
                 matched = f'like "%{fragment}%"'
-            dml = ' '.join(['select char.id, char.codetext, char.name, char.char from char', 'where', by, matched, 'order by char.char'])
+            dml = ' '.join([sel, 'where', by, matched, 'order by char.char'])
 
         with Cursor(conn) as cur:
             cur.execute(dml)
@@ -49,7 +50,7 @@ def search(fragment, by, delimiter, strict=False, first=False, format=None):
         if first == True:
             char_list = char_list[0:1]
 
-        for (id, codetext, name, char) in char_list:
+        for (id, codetext, name, detail, char) in char_list:
             if not char:
                 char = str(char)
 
@@ -58,6 +59,9 @@ def search(fragment, by, delimiter, strict=False, first=False, format=None):
             else:
                 if format == 'UTF8':
                     codetext = ' '.join(f'{u:X}' for u in [int.from_bytes(chr(int(c, 16)).encode(), 'big') for c in codetext.split(' ')])
+
+                if detail and len(detail) > 0:
+                    name = '; '.join([name, detail])
 
                 print(delimiter.join([char, codetext, name]))
 
@@ -73,10 +77,11 @@ def ucsearch():
     group_by.add_argument('-b', '--block', action='store_const', dest='by', const='block', help='by block name')
     group_by.add_argument('-c', '--code', action='store_const', dest='by', const='code', help='by code')
     group_by.add_argument('-x', '--char', action='store_const', dest='by', const='char', help='by char')
+    group_by.add_argument('-d', '--detail', action='store_const', dest='by', const='detail', help='by detail')
     parser.add_argument('-s', '--strict', action='store_true', help='match name strictly')
     parser.add_argument('-1', '--first', action='store_true', help='first match only')
     parser.add_argument('-f', '--format', choices=['utf8', 'simple'], default=None, help='format')
-    parser.add_argument('-d', '--delimiter', default=' ', help='output delimiter')
+    parser.add_argument('-D', '--delimiter', default=' ', help='output delimiter')
 
     args = parser.parse_args()
 

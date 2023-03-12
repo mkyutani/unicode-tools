@@ -129,6 +129,13 @@ def get_name(char):
                 value.append(alias_name)
     return '; '.join(value)
 
+def get_detail(char):
+    definition = char.attrib.get('kDefinition')
+    if definition and len(definition) > 0:
+        return definition.upper()
+    else:
+        return ''
+
 def store_ucd(xml_list):
     if not xml_list:
         return None
@@ -149,10 +156,12 @@ def store_ucd(xml_list):
                     value_code = code
                     value_code_text = f'"{value_code:X}"'
                     name = get_name(char)
+                    detail = get_detail(char)
                     if not name:
                         print(f'Found no character: {code:X}', file=sys.stderr)
                         continue
                     value_name = f'"{name}"'
+                    value_detail = f'"{detail}"'
 
                     try:
                         if code == 0:
@@ -172,7 +181,7 @@ def store_ucd(xml_list):
                         value_block = f'"{block}"'
 
                     id = table_char_autoincrement_id.next()
-                    dml = f'insert into char(id, name, codetext, char, block) values({id}, {value_name}, {value_code_text}, {value_char}, {value_block})'
+                    dml = f'insert into char(id, name, detail, codetext, char, block) values({id}, {value_name}, {value_detail}, {value_code_text}, {value_char}, {value_block})'
                     cur.execute(dml)
                     dml_seq = f'insert into codepoint(char, seq, code) values({id}, 1, {value_code})'
                     cur.execute(dml_seq)
