@@ -75,7 +75,7 @@ def ucsearch():
     group_by.add_argument('-x', '--char', action='store_const', dest='by', const='char', help='by char')
     parser.add_argument('-s', '--strict', action='store_true', help='match name strictly')
     parser.add_argument('-1', '--first', action='store_true', help='first match only')
-    parser.add_argument('-f', '--format', choices=['default', 'utf8', 'simple'], default=None, help='format')
+    parser.add_argument('-f', '--format', choices=['utf8', 'simple'], default=None, help='format')
     parser.add_argument('-d', '--delimiter', default=' ', help='output delimiter')
 
     args = parser.parse_args()
