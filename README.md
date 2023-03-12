@@ -30,7 +30,7 @@ This tool depends on unicode 15.0 definition files.
 
 `ucsearch` with `--code` option searches characters by code range and prints result.
 
-![Search by code range](img/ucsearch-code-22002207.png)
+![Search by code range](img/ucsearch-code-1f4791f47b.png)
 
 ### Search by character
 
