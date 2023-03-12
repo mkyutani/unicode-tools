@@ -14,88 +14,78 @@ This tool depends on unicode 15.0 definition files.
 
 ## Usage
 
-### Search by name
+### Simple search by name
 
-```
-$ ucsearch goblin
-👺 1F47A JAPANESE GOBLIN
-```
+`ucsearch` searches characters by name in local unicode database created by `uccreatedatabse` (see ![Install and initialize tools section](#install-and-initialize-tools)), and prints character, code point or code point sequence, and name or description.
 
-`ucsearch` prints character, code point or code point sequence, and name or description.
+![Simple search](img/ucsearch-goblin.png)
 
-### Search by code
+### Search by code range
 
-```
-$ ucsearch --code 2200-2207
-∀ 2200 FOR ALL
-∁ 2201 COMPLEMENT
-∂ 2202 PARTIAL DIFFERENTIAL
-∃ 2203 THERE EXISTS
-∄ 2204 THERE DOES NOT EXIST
-∅ 2205 EMPTY SET
-∆ 2206 INCREMENT
-∇ 2207 NABLA
-```
+`ucsearch` with `--code` option searches characters by code range and prints result.
 
-### Search by block
+![Search by code range](img/ucsearch-code-22002207.png)
 
-```
-$ ucsearch --block flag | grep -i norway
-🇳🇴 1F1F3 1F1F4 flag: Norway
-```
+### Search by character
+
+`ucsearch` with `--char` option searches characters by character and prints result.
+
+![Search by character](img/ucsearch-char-goblin.png)
+
+### Search by block name
+
+`ucsearch` with `--block` option search characters by block name and prints result.
+
+![Search by block name](img/ucsearch-block-flag.png)
 
 ### Applications not supporting complex emoji and zwj sequences
 
 In the case described above, you may see two letters instead of the national flag of Norway in your terminal.
 
-![Sample to copy Norway's flag in twitter](img/paste-flag-Norway-without-fonts.png)
+![Sample to copy Norway's flag in twitter](img/ucsearch-block-flag-norway.png)
 
-Even if so, when you copy first two letters "🇳🇴" (\u1f1f3\u1f1f4) and paste them in browser, twitter's tweet textbox for example, you can see the national flag of Norway.
+Even if so, when you copy first two letters ![NO](img/norway-flag-chars.png) (\u1f1f3\u1f1f4) and paste them in browser, twitter's tweet textbox for example, you can see the national flag of Norway.
 
-![Sample to paste Norway's flag in twitter](img/paste-flag-Norway-in-twitter.png)
+![Sample to paste Norway's flag in twitter](img/twitter-norway.png)
 
 The same applies to zwf sequences.
 
-![Sample to copy polar bear in twitter](img/paste-polar-bear-without-fonts.png)
+In terminal without any fonts:
 
-![Sample to paste polar bear in twitter](img/paste-polar-bear-in-twitter.png)
+![Sample to copy polar bear in twitter](img/ucsearch-polarbear.png)
+
+In twitter's tweet textbox:
+
+![Sample to paste polar bear in twitter](img/twitter-polarbear.png)
 
 ### Options
 
-* ``--strict``: searches characters completely matched (but case insensitive) with specified name.
+### ``--strict``
 
-```
-$ ucsearch snowman
-☃ 2603 SNOWMAN
-☃️ 2603 FE0F snowman
-⛄ 26C4 SNOWMAN WITHOUT SNOW
-⛇ 26C7 BLACK SNOWMAN
-$ ucsearch --strict snowman
-☃ 2603 SNOWMAN
-☃️ 2603 FE0F snowman
-```
+Searches characters completely matched (but case insensitive).
 
-* ``--utf8``: prints utf-8 codes instead of utf-32.
+![Search with --strict](img/ucsearch-snowman-strict.png)
 
-```
-$ ucsearch goblin
-👺 1F47A JAPANESE GOBLIN
-$ ucsearch --utf8 goblin
-👺 F09F91BA JAPANESE GOBLIN
-```
+### ``--format {utf8,simple}``
 
-* ``--delimiter`` with delimiter: prints with specified delimiter instead of space (' ').
+Prints result in various format.
 
-```
-$ ucsearch fireworks
-🎆 1F386 FIREWORKS
-$ ucsearch --delimiter : fireworks
-🎆:1F386:FIREWORKS
-$ ucsearch --delimiter=: fireworks
-🎆:1F386:FIREWORKS
-$ ucsearch -d: fireworks
-🎆:1F386:FIREWORKS
-```
+* 'utf8': Prints utf-8 instead of utf-32.
+* 'simple': Prints characters only.  This option may be used in pipe.
+
+![Search with --format](img/ucsearch-goblin-format.png)
+
+### ``--first``
+
+Prints the first result only.  This option may be used in pipe.
+
+![Search with --first](img/ucsearch-snowman-first.png)
+
+### ``--delimiter``
+
+Prints result with the specified delimiter instead of space (0x20).
+
+![Print with --demiliter](img/ucsearch-goblin-delimiter.png)
 
 ## Install and initialize tools
 
