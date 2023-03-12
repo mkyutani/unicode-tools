@@ -28,6 +28,9 @@ def search(fragment, by, delimiter, strict=False, utf8=False):
             else:
                 cond = f'where cp.code = {code_range}'
             dml = ' '.join(['select char.id, char.codetext, char.name, char.char from char inner join codepoint as cp on char.id = cp.char', cond, 'order by char.char'])
+        elif by == 'char':
+            cond = f'where char.char = "{fragment}"'
+            dml = ' '.join(['select char.id, char.codetext, char.name, char.char from char', cond])
         else:
             if strict:
                 by = f'upper({by})'
@@ -60,6 +63,7 @@ def ucsearch():
     group_by = parser.add_mutually_exclusive_group()
     group_by.add_argument('-b', '--block', action='store_const', dest='by', const='block', help='by block name')
     group_by.add_argument('-c', '--code', action='store_const', dest='by', const='code', help='by code')
+    group_by.add_argument('-x', '--char', action='store_const', dest='by', const='char', help='by char')
     parser.add_argument('-s', '--strict', action='store_true', help='match name strictly')
     parser.add_argument('-u', '--utf8', action='store_true', help='print utf8')
     parser.add_argument('-d', '--delimiter', default=' ', help='output delimiter')
@@ -71,8 +75,8 @@ def ucsearch():
     else:
         by = 'name'
 
-    if by == 'code' and args.strict:
-        print('warning: Ignore --strict in code search')
+    if (by == 'code' or by == 'char') and args.strict:
+        print(f'warning: Ignore --strict in {by} search')
 
     search(args.expression, by, args.delimiter, strict=args.strict, utf8=args.utf8)
 
