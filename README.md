@@ -20,6 +20,12 @@ This tool depends on unicode 15.0 definition files.
 
 ![Simple search](img/ucsearch-goblin.png)
 
+### Search by detail
+
+`ucsearch` with `--detail` option searches characters by detail and prints result.  Detail is stored from `kDefinition` tag of CJK characters.
+
+![Search by detail](img/ucsearch-goblin-detail.png)
+
 ### Search by code range
 
 `ucsearch` with `--code` option searches characters by code range and prints result.
