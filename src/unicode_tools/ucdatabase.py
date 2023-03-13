@@ -129,12 +129,12 @@ def get_name(char):
                 value.append(alias_name)
     return '; '.join(value)
 
-def get_detail(char):
+def get_detail(char, name):
     definition = char.attrib.get('kDefinition')
     if definition and len(definition) > 0:
-        return definition.upper()
+        return '; '.join([name, definition.upper()])
     else:
-        return ''
+        return name
 
 def store_ucd(xml_list):
     if not xml_list:
@@ -156,11 +156,11 @@ def store_ucd(xml_list):
                     value_code = code
                     value_code_text = f'"{value_code:X}"'
                     name = get_name(char)
-                    detail = get_detail(char)
                     if not name:
                         print(f'Found no character: {code:X}', file=sys.stderr)
                         continue
                     value_name = f'"{name}"'
+                    detail = get_detail(char, name)
                     value_detail = f'"{detail}"'
 
                     try:
