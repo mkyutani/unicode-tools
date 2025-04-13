@@ -4,6 +4,10 @@ import sys
 from pathlib import Path
 
 unicode_sqlite3_database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../../../share/applications/unicode.db'))
+unicode_sqlite3_database_dir = os.path.dirname(unicode_sqlite3_database_path)
+if not os.path.exists(unicode_sqlite3_database_dir):
+    os.makedirs(unicode_sqlite3_database_dir)
+    print(f'Created directory: {unicode_sqlite3_database_dir}', file=sys.stderr)
 
 class Database:
 
