@@ -3,11 +3,49 @@ import sqlite3
 import sys
 from pathlib import Path
 
-unicode_sqlite3_database_path = os.path.abspath(os.path.join(os.path.dirname(__file__), f'../../../../share/applications/unicode.db'))
-unicode_sqlite3_database_dir = os.path.dirname(unicode_sqlite3_database_path)
+def get_data_dir():
+    """データディレクトリのパスを決定する"""
+    # 環境変数でオーバーライド可能
+    if 'UNICODE_DB_PATH' in os.environ:
+        return Path(os.environ['UNICODE_DB_PATH']).parent
+    
+    if os.getuid() == 0:  # rootユーザー
+        # /procを使って親プロセスをチェック（Linuxのみ）
+        try:
+            with open('/proc/self/stat', 'r') as f:
+                stats = f.read().split()
+                parent_pid = int(stats[3])  # 4番目が親プロセスID
+            
+            with open(f'/proc/{parent_pid}/comm', 'r') as f:
+                parent_name = f.read().strip()
+            
+            if parent_name in ['systemd', 'cron']:
+                # システムサービスとして実行されている
+                return Path('/var/lib/unicode-tools')
+        except (FileNotFoundError, ValueError, IndexError):
+            # /procが読めない場合やLinux以外の場合
+            pass
+        
+        # rootの個人利用
+        return Path('/root/.local/share/unicode-tools')
+    else:
+        # 通常ユーザー
+        return Path.home() / '.local/share/unicode-tools'
+
+# データベースパスの設定
+data_dir = get_data_dir()
+unicode_sqlite3_database_path = str(data_dir / 'unicode.db')
+unicode_sqlite3_database_dir = str(data_dir)
+
+# ディレクトリが存在しない場合は作成（ただし警告を出す）
 if not os.path.exists(unicode_sqlite3_database_dir):
-    os.makedirs(unicode_sqlite3_database_dir)
-    print(f'Created directory: {unicode_sqlite3_database_dir}', file=sys.stderr)
+    try:
+        os.makedirs(unicode_sqlite3_database_dir)
+        print(f'Created directory: {unicode_sqlite3_database_dir}', file=sys.stderr)
+    except PermissionError:
+        print(f'Permission denied: Cannot create directory {unicode_sqlite3_database_dir}', file=sys.stderr)
+        print(f'Please create the directory manually or set UNICODE_DB_PATH environment variable', file=sys.stderr)
+        sys.exit(1)
 
 class Database:
 
