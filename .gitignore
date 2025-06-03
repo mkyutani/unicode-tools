@@ -7,6 +7,14 @@ site/
 work/
 local/
 
+# IDE and Editor directories
+.vscode/
+.idea/
+.cursor/
+*.swp
+*.swo
+*~
+
 # Virtual Environments
 .venv
 venv/
