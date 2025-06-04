@@ -1,129 +1,276 @@
-# Unicode tools
+# Unicode Tools
 
-Search unicode character and character sequences:
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Unicode](https://img.shields.io/badge/Unicode-15.0-green.svg)](https://unicode.org/)
 
-* by character name
-* by character code
-* by unicode block
+A powerful command-line tool for searching and exploring Unicode characters, emoji sequences, and character properties.
 
-This tool depends on unicode 15.0 definition files.
+## 🚀 Features
 
-* https://www.unicode.org/Public/15.0.0/ucdxml/ucd.all.flat.zip
-* https://www.unicode.org/Public/emoji/15.0/emoji-sequences.txt
-* https://www.unicode.org/Public/emoji/15.0/emoji-zwj-sequences.txt
+- **Search by name**: Find characters by their Unicode name
+- **Search by code**: Look up characters by code point or range
+- **Search by character**: Reverse lookup from character to details
+- **Search by block**: Explore characters within Unicode blocks
+- **Emoji support**: Full support for emoji sequences and ZWJ sequences
+- **CJK details**: Enhanced descriptions for CJK characters using kDefinition
+- **Flexible output**: Multiple output formats for different use cases
 
-## Usage
+## 📖 Table of Contents
 
-### Simple search by name
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage Examples](#usage-examples)
+- [Command Reference](#command-reference)
+- [Database Management](#database-management)
+- [Contributing](#contributing)
+- [License](#license)
 
-`ucsearch` searches characters by name in local unicode database created by `uccreatedatabase` (see ![Install and initialize tools section](#install-and-initialize-tools)), and prints character, code point or code point sequence, and name or description.
+## 🛠 Installation
 
-![Simple search](img/ucsearch-goblin.png)
+### Install from source
 
-### Search by detail
+```bash
+git clone https://github.com/mkyutani/unicode-tools.git
+cd unicode-tools
+pip install -e .
+```
 
-`ucsearch` with `--detail` option searches characters by detail and prints result.  Detail is stored from `kDefinition` tag of CJK characters.
+### Initialize database
 
-![Search by detail](img/ucsearch-goblin-detail.png)
+Create the Unicode database (required for first use):
 
-### Search by code range
+```bash
+uccreatedatabase
+```
 
-`ucsearch` with `--code` option searches characters by code range and prints result.
+This downloads Unicode 15.0 data and creates a local SQLite database (~13MB) at:
+- Linux/macOS: `~/.local/share/unicode-tools/unicode.db`
+- Root users: Automatically chooses between system (`/var/lib/unicode-tools/`) or personal location
 
-![Search by code range](img/ucsearch-code-1f4791f47b.png)
+## ⚡ Quick Start
 
-### Search by character
+```bash
+# Search for ghost-related characters
+ucsearch ghost
 
-`ucsearch` with `--char` option searches characters by character and prints result.
+# Find characters in a code range
+ucsearch -c 1F47A-1F480
 
-![Search by character](img/ucsearch-char-goblin.png)
+# Search by character
+ucsearch -x 👻
 
-### Search by block name
+# Search within a Unicode block
+ucsearch -b "Emoticons"
+```
 
-`ucsearch` with `--block` option search characters by block name and prints result.
+## 📋 Usage Examples
 
-![Search by block name](img/ucsearch-block-flag.png)
+### Search by Name
 
-### Applications not supporting complex emoji and zwj sequences
+```bash
+ucsearch goblin
+```
+```
+👺 1F47A JAPANESE GOBLIN
+```
 
-In the case described above, you may see two letters instead of the national flag of Norway in your terminal.
+### Search by Code Range
+
+```bash
+ucsearch -c 1F479-1F47B
+```
+```
+👹 1F479 JAPANESE OGRE
+👺 1F47A JAPANESE GOBLIN
+👻 1F47B GHOST
+```
+
+### Search by Character
+
+```bash
+ucsearch -x 👻
+```
+```
+👻 1F47B GHOST
+```
+
+### Search by Unicode Block
+
+```bash
+ucsearch -b "Misc_Pictographs"
+```
+
+### Search with Details (CJK Characters)
+
+```bash
+ucsearch -d "pray for happiness"
+```
+```
+祝 795D CJK UNIFIED IDEOGRAPH-#; PRAY FOR HAPPINESS OR BLESSINGS
+```
+
+### Output Formatting
+
+```bash
+# Simple format (characters only)
+ucsearch ghost -f simple
+👻
+
+# UTF-8 format
+ucsearch ghost -f utf8
+👻 F0 9F 91 BB GHOST
+
+# Custom delimiter
+ucsearch ghost -D "|"
+👻|1F47B|GHOST
+```
+
+## 🔧 Command Reference
+
+### ucsearch
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--name` | | Search by character name (default) |
+| `--code` | `-c` | Search by code point or range |
+| `--char` | `-x` | Search by character |
+| `--block` | `-b` | Search by Unicode block |
+| `--detail` | `-d` | Search in character details |
+| `--strict` | `-s` | Exact match (case insensitive) |
+| `--first` | `-1` | Show first result only |
+| `--format` | `-f` | Output format: `utf8`, `simple` |
+| `--delimiter` | `-D` | Custom delimiter (default: space) |
+
+### Database Management
+
+| Command | Description |
+|---------|-------------|
+| `uccreatedatabase` | Create/update Unicode database |
+| `ucdeletedatabase` | Remove Unicode database |
+| `ucdatabaseinfo` | Show database location |
+
+## 💾 Database Management
+
+### Create Database
+```bash
+uccreatedatabase
+```
+
+### Check Database Location
+```bash
+ucdatabaseinfo
+```
+
+### Remove Database
+```bash
+ucdeletedatabase
+```
+
+### Environment Variables
+
+- `UNICODE_DB_PATH`: Override default database location
+
+```bash
+export UNICODE_DB_PATH="/custom/path/unicode.db"
+uccreatedatabase
+```
+
+## 🌟 Advanced Examples
+
+### Finding Emoji Sequences
+
+```bash
+# National flags
+ucsearch -b "RGI_Emoji_Flag_Sequence"
+
+# Family emoji with ZWJ sequences
+ucsearch family
+```
+
+### Terminal Display vs. Browser/Application Support
+
+Many terminals don't properly display complex emoji sequences, but the characters work correctly when copied to browsers or applications.
+
+#### National Flag Example
+
+When searching for flags, you might see separate letters in your terminal:
+
+```bash
+ucsearch -b "RGI_Emoji_Flag_Sequence" | grep -i norway
+```
+```
+🇳🇴 1F1F3 1F1F4 flag: Norway
+```
 
 ![Sample to copy Norway's flag in twitter](img/ucsearch-block-flag-norway.png)
 
-Even if so, when you copy first two letters ![NO](img/norway-flag-chars.png) (\u1f1f3\u1f1f4) and paste them in browser, twitter's tweet textbox for example, you can see the national flag of Norway.
+Even though you see two separate letters (🇳🇴) in the terminal, when you copy and paste them into a browser or application like Twitter, they combine to display the Norwegian flag 🇳🇴.
 
 ![Sample to paste Norway's flag in twitter](img/twitter-norway.png)
 
-The same applies to zwf sequences.
+#### ZWJ Sequence Example
 
-In terminal without any fonts:
+The same applies to Zero Width Joiner (ZWJ) sequences. Complex emoji like family groups or professional emoji might not render correctly in terminals:
+
+```bash
+ucsearch "polar bear"
+```
+
+In a terminal without proper font support:
 
 ![Sample to copy polar bear in twitter](img/ucsearch-polarbear.png)
 
-In twitter's tweet textbox:
+But when pasted in Twitter or other applications:
 
 ![Sample to paste polar bear in twitter](img/twitter-polarbear.png)
 
-### Options
+> **💡 Tip**: This is expected behavior. The Unicode data is correct, and the characters will work properly in applications that support modern emoji rendering.
 
-### ``--strict``
+### Pipe Operations
 
-Searches characters completely matched (but case insensitive).
+```bash
+# Get just the character
+ucsearch ghost -f simple
 
-![Search with --strict](img/ucsearch-snowman-strict.png)
+# First match only
+ucsearch snow -1
 
-### ``--format {utf8,simple}``
-
-Prints result in various format.
-
-* 'utf8': Prints utf-8 instead of utf-32.
-* 'simple': Prints characters only.  This option may be used in pipe.
-
-![Search with --format](img/ucsearch-goblin-format.png)
-
-### ``--first``
-
-Prints the first result only.  This option may be used in pipe.
-
-![Search with --first](img/ucsearch-snowman-first.png)
-
-### ``--delimiter``
-
-Prints result with the specified delimiter instead of space (0x20).
-
-![Print with --delimiter](img/ucsearch-goblin-delimiter.png)
-
-## Install and initialize tools
-
-Install by `pip3`.
-
-```
-$ pip3 install git+https://github.com/mkyutani/unicode-tools.git
+# Custom format for scripting
+ucsearch ghost -D "," | cut -d',' -f1
 ```
 
-`uccreatedatabase` command initializes unicode database.
+### Complex Searches
 
-```
-$ uccreatedatabase
-```
+```bash
+# CJK characters with specific meanings
+ucsearch -d "dragon"
 
-This command creates a file `~/.local/share/applications/unicode.db`, which is an sqlite3 file consuming about 13MB for unicode 15.0.
-
-## Remove tools
-
-`ucdeletedatabase` removes unicode database.
-
-```
-$ ucdeletedatabase
+# Characters in multiple blocks
+ucsearch -b "Mathematical" | head -10
 ```
 
-This command removes `~/.local/share/applications/unicode.db`.
+## 🏗 Data Sources
 
-## Print database information
+This tool uses official Unicode 15.0 data:
 
-`ucdatabaseinfo` prints database information.
+- [Unicode Character Database](https://www.unicode.org/Public/15.0.0/ucdxml/ucd.all.flat.zip)
+- [Emoji Sequences](https://www.unicode.org/Public/emoji/15.0/emoji-sequences.txt)
+- [Emoji ZWJ Sequences](https://www.unicode.org/Public/emoji/15.0/emoji-zwj-sequences.txt)
 
-```
-$ ucdatabaseinfo
-/home/username/.local/share/applications/unicode.db
-```
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Unicode Consortium](https://unicode.org/) for maintaining Unicode standards
+- Contributors and users of this project
