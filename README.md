@@ -41,7 +41,7 @@ pip install -e .
 Create the Unicode database (required for first use):
 
 ```bash
-uccreatedatabase
+uchr db create
 ```
 
 This downloads Unicode 15.0 data and creates a local SQLite database (~13MB) at:
@@ -52,16 +52,16 @@ This downloads Unicode 15.0 data and creates a local SQLite database (~13MB) at:
 
 ```bash
 # Search for ghost-related characters
-ucsearch ghost
+uchr search ghost
 
 # Find characters in a code range
-ucsearch -c 1F47A-1F480
+uchr search -c 1F47A-1F480
 
 # Search by character
-ucsearch -x 👻
+uchr search -x 👻
 
 # Search within a Unicode block
-ucsearch -b "Emoticons"
+uchr search -b "Emoticons"
 ```
 
 ## 📋 Usage Examples
@@ -69,7 +69,7 @@ ucsearch -b "Emoticons"
 ### Search by Name
 
 ```bash
-ucsearch goblin
+uchr search goblin
 ```
 ```
 👺 1F47A JAPANESE GOBLIN
@@ -78,7 +78,7 @@ ucsearch goblin
 ### Search by Code Range
 
 ```bash
-ucsearch -c 1F479-1F47B
+uchr search -c 1F479-1F47B
 ```
 ```
 👹 1F479 JAPANESE OGRE
@@ -89,7 +89,7 @@ ucsearch -c 1F479-1F47B
 ### Search by Character
 
 ```bash
-ucsearch -x 👻
+uchr search -x 👻
 ```
 ```
 👻 1F47B GHOST
@@ -98,13 +98,13 @@ ucsearch -x 👻
 ### Search by Unicode Block
 
 ```bash
-ucsearch -b "Misc_Pictographs"
+uchr search -b "Misc_Pictographs"
 ```
 
 ### Search with Details (CJK Characters)
 
 ```bash
-ucsearch -d "pray for happiness"
+uchr search -d "pray for happiness"
 ```
 ```
 祝 795D CJK UNIFIED IDEOGRAPH-#; PRAY FOR HAPPINESS OR BLESSINGS
@@ -114,21 +114,27 @@ ucsearch -d "pray for happiness"
 
 ```bash
 # Simple format (characters only)
-ucsearch ghost -f simple
+uchr search ghost -f simple
 👻
 
 # UTF-8 format
-ucsearch ghost -f utf8
+uchr search ghost -f utf8
 👻 F0 9F 91 BB GHOST
 
 # Custom delimiter
-ucsearch ghost -D "|"
+uchr search ghost -D "|"
 👻|1F47B|GHOST
 ```
 
 ## 🔧 Command Reference
 
-### ucsearch
+### uchr
+
+Main command with subcommands for all Unicode operations.
+
+#### uchr search
+
+Search Unicode characters with various criteria.
 
 | Option | Short | Description |
 |--------|-------|-------------|
@@ -142,29 +148,31 @@ ucsearch ghost -D "|"
 | `--format` | `-f` | Output format: `utf8`, `simple` |
 | `--delimiter` | `-D` | Custom delimiter (default: space) |
 
-### Database Management
+#### uchr db
 
-| Command | Description |
-|---------|-------------|
-| `uccreatedatabase` | Create/update Unicode database |
-| `ucdeletedatabase` | Remove Unicode database |
-| `ucdatabaseinfo` | Show database location |
+Database management operations.
+
+| Subcommand | Description |
+|------------|-------------|
+| `uchr db create` | Create/update Unicode database |
+| `uchr db delete` | Remove Unicode database |
+| `uchr db info` | Show database location |
 
 ## 💾 Database Management
 
 ### Create Database
 ```bash
-uccreatedatabase
+uchr db create
 ```
 
 ### Check Database Location
 ```bash
-ucdatabaseinfo
+uchr db info
 ```
 
 ### Remove Database
 ```bash
-ucdeletedatabase
+uchr db delete
 ```
 
 ### Environment Variables
@@ -173,7 +181,7 @@ ucdeletedatabase
 
 ```bash
 export UNICODE_DB_PATH="/custom/path/unicode.db"
-uccreatedatabase
+uchr db create
 ```
 
 ## 🌟 Advanced Examples
@@ -182,10 +190,10 @@ uccreatedatabase
 
 ```bash
 # National flags
-ucsearch -b "RGI_Emoji_Flag_Sequence"
+uchr search -b "RGI_Emoji_Flag_Sequence"
 
 # Family emoji with ZWJ sequences
-ucsearch family
+uchr search family
 ```
 
 ### Terminal Display vs. Browser/Application Support
@@ -197,7 +205,7 @@ Many terminals don't properly display complex emoji sequences, but the character
 When searching for flags, you might see separate letters in your terminal:
 
 ```bash
-ucsearch -b "RGI_Emoji_Flag_Sequence" | grep -i norway
+uchr search -b "RGI_Emoji_Flag_Sequence" | grep -i norway
 ```
 ```
 🇳🇴 1F1F3 1F1F4 flag: Norway
@@ -214,7 +222,7 @@ Even though you see two separate letters (🇳🇴) in the terminal, when you co
 The same applies to Zero Width Joiner (ZWJ) sequences. Complex emoji like family groups or professional emoji might not render correctly in terminals:
 
 ```bash
-ucsearch "polar bear"
+uchr search "polar bear"
 ```
 
 In a terminal without proper font support:
@@ -231,23 +239,23 @@ But when pasted in Twitter or other applications:
 
 ```bash
 # Get just the character
-ucsearch ghost -f simple
+uchr search ghost -f simple
 
 # First match only
-ucsearch snow -1
+uchr search snow -1
 
 # Custom format for scripting
-ucsearch ghost -D "," | cut -d',' -f1
+uchr search ghost -D "," | cut -d',' -f1
 ```
 
 ### Complex Searches
 
 ```bash
 # CJK characters with specific meanings
-ucsearch -d "dragon"
+uchr search -d "dragon"
 
 # Characters in multiple blocks
-ucsearch -b "Mathematical" | head -10
+uchr search -b "Mathematical" | head -10
 ```
 
 ## 🏗 Data Sources

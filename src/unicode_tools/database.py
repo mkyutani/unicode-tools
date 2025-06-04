@@ -216,7 +216,7 @@ def store_emoji(emoji_sequences):
     emoji_sequence_line_pattern = re.compile('^(.+);(.+);([^#]+)#')
     emoji_sequence_cp_pattern = re.compile('([0-9A-Fa-f]+)')
     emoji_sequence_multi_pattern = re.compile('([0-9A-Fa-f]+)')
-    emoji_sequence_continuous_pattern = re.compile('([0-9A-Fa-f]+)\.\.([0-9A-Fa-f]+)')
+    emoji_sequence_continuous_pattern = re.compile(r'([0-9A-Fa-f]+)\.\.([0-9A-Fa-f]+)')
 
     with Connection() as conn:
         with Cursor(conn) as cur:
@@ -280,25 +280,22 @@ def store_emoji(emoji_sequences):
             conn.commit()
             print(f'Stored {count} emoji characters', file=sys.stderr)
 
-def wrap_io():
-    sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", line_buffering=True)
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", line_buffering=True)
 
-def uccreatedatabase():
-    wrap_io()
+
+def create_database():
+    """Create Unicode database"""
     Database().create()
     store_ucd(download_ucd('https://www.unicode.org/Public/15.0.0/ucdxml/ucd.all.flat.zip'))
     store_emoji(download_emoji('https://www.unicode.org/Public/emoji/15.0/emoji-sequences.txt'))
     store_emoji(download_emoji('https://www.unicode.org/Public/emoji/15.0/emoji-zwj-sequences.txt'))
     return 0
 
-def ucdeletedatabase():
-    wrap_io()
+def delete_database():
+    """Delete Unicode database"""
     Database().delete()
     return 0
 
-def ucdatabaseinfo():
-    wrap_io()
+def database_info():
+    """Show database information"""
     print(Database().get_path())
     return 0
