@@ -22,6 +22,19 @@ def search_command(args):
     
     search(args.expression, by, args.delimiter, strict=args.strict, first=args.first, format=args.format)
 
+def normalize_command(args):
+    """Handle uchr normalize subcommand"""
+    from .normalize import normalize_command as normalize_func
+    
+    return normalize_func(
+        form=args.form,
+        halfwidth=args.halfwidth,
+        compare=args.compare,
+        detailed=args.detail,
+        delimiter=args.delimiter,
+        input_file=args.input_file
+    )
+
 def db_create_command(args):
     """Handle uchr db create subcommand"""
     from .database import create_database
@@ -49,6 +62,11 @@ Examples:
   uchr search -c 1F47A-1F480          # Search by code range
   uchr search -x 👻                   # Search by character
   uchr search -b "Emoticons"          # Search by Unicode block
+  uchr normalize                      # Normalize text from stdin (NFC)
+  uchr normalize --form nfd           # Normalize to NFD form
+  uchr normalize --halfwidth          # Convert fullwidth to halfwidth
+  uchr normalize --detail             # Show result form binary unicode
+  uchr normalize --compare            # Show all normalization forms
   uchr db create                      # Create Unicode database
   uchr db info                        # Show database location
         """
@@ -71,6 +89,21 @@ Examples:
     search_parser.add_argument('-f', '--format', choices=['utf8', 'simple'], default=None, help='Output format')
     search_parser.add_argument('-D', '--delimiter', default=' ', help='Output delimiter (default: space)')
     search_parser.set_defaults(func=search_command)
+    
+    # Normalize subcommand
+    normalize_parser = subparsers.add_parser('normalize', help='Normalize and convert Unicode text')
+    normalize_parser.add_argument('input_file', nargs='?', default=None, help='Input file (default: stdin)')
+    normalize_parser.add_argument('--form', choices=['nfc', 'nfd', 'nfkc', 'nfkd'], default='nfc', 
+                                help='Unicode normalization form (default: nfc)')
+    normalize_parser.add_argument('--halfwidth', action='store_true',
+                                help='Convert fullwidth characters to halfwidth')
+    normalize_parser.add_argument('--compare', action='store_true',
+                                help='Show comparison of all normalization forms')
+    normalize_parser.add_argument('--detail', action='store_true',
+                                help='Show detailed output: result form binary unicode')
+    normalize_parser.add_argument('--delimiter', default=' ',
+                                help='Delimiter for detailed output (default: space)')
+    normalize_parser.set_defaults(func=normalize_command)
     
     # Database subcommand
     db_parser = subparsers.add_parser('db', help='Database management')
