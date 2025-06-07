@@ -1,8 +1,10 @@
-# Unicode Tools
+# Unicode Tools (uchr)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Unicode](https://img.shields.io/badge/Unicode-15.0-green.svg)](https://unicode.org/)
+[![PyPI version](https://badge.fury.io/py/uchr.svg)](https://badge.fury.io/py/uchr)
+[![PyPI downloads](https://img.shields.io/pypi/dm/uchr.svg)](https://pypi.org/project/uchr/)
 
 A powerful command-line tool for searching and exploring Unicode characters, emoji sequences, and character properties.
 
@@ -15,6 +17,7 @@ A powerful command-line tool for searching and exploring Unicode characters, emo
 - **Emoji support**: Full support for emoji sequences and ZWJ sequences
 - **CJK details**: Enhanced descriptions for CJK characters using kDefinition
 - **Flexible output**: Multiple output formats for different use cases
+- **Text normalization**: Unicode normalization and text conversion utilities
 
 ## 📖 Table of Contents
 
@@ -23,17 +26,24 @@ A powerful command-line tool for searching and exploring Unicode characters, emo
 - [Usage Examples](#usage-examples)
 - [Command Reference](#command-reference)
 - [Database Management](#database-management)
+- [Text Normalization](#text-normalization)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## 🛠 Installation
+
+### Install from PyPI (Recommended)
+
+```bash
+pip install uchr
+```
 
 ### Install from source
 
 ```bash
 git clone https://github.com/mkyutani/unicode-tools.git
 cd unicode-tools
-pip install -e .
+poetry install
 ```
 
 ### Initialize database
@@ -45,8 +55,8 @@ uchr db create
 ```
 
 This downloads Unicode 15.0 data and creates a local SQLite database (~13MB) at:
-- Linux/macOS: `~/.local/share/unicode-tools/unicode.db`
-- Root users: Automatically chooses between system (`/var/lib/unicode-tools/`) or personal location
+- Linux/macOS: `~/.local/share/uchr/unicode.db`
+- Root users: Automatically chooses between system (`/var/lib/uchr/`) or personal location
 
 ## ⚡ Quick Start
 
@@ -62,6 +72,9 @@ uchr search -x 👻
 
 # Search within a Unicode block
 uchr search -b "Emoticons"
+
+# Normalize text
+echo "ＨｅｌｌｏＷｏｒｌｄ" | uchr normalize --halfwidth
 ```
 
 ## 📋 Usage Examples
@@ -148,6 +161,17 @@ Search Unicode characters with various criteria.
 | `--format` | `-f` | Output format: `utf8`, `simple` |
 | `--delimiter` | `-D` | Custom delimiter (default: space) |
 
+#### uchr normalize
+
+Unicode text normalization and conversion.
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--form` | `-f` | Normalization form: `nfc`, `nfd`, `nfkc`, `nfkd` |
+| `--halfwidth` | | Convert fullwidth characters to halfwidth |
+| `--detail` | | Show detailed binary representation |
+| `--compare` | | Show all normalization forms |
+
 #### uchr db
 
 Database management operations.
@@ -182,6 +206,47 @@ uchr db delete
 ```bash
 export UNICODE_DB_PATH="/custom/path/unicode.db"
 uchr db create
+```
+
+## 🔤 Text Normalization
+
+The `uchr normalize` command provides Unicode text normalization and conversion utilities.
+
+### Basic Normalization
+
+```bash
+# Normalize to NFC (default)
+echo "café" | uchr normalize
+
+# Normalize to NFD
+echo "café" | uchr normalize --form nfd
+
+# Normalize to NFKC
+echo "ﬁle" | uchr normalize --form nfkc
+
+# Normalize to NFKD
+echo "ﬁle" | uchr normalize --form nfkd
+```
+
+### Text Conversion
+
+```bash
+# Convert fullwidth to halfwidth
+echo "ＨｅｌｌｏＷｏｒｌｄ" | uchr normalize --halfwidth
+
+# Show detailed binary representation
+echo "café" | uchr normalize --detail
+
+# Compare all normalization forms
+echo "café" | uchr normalize --compare
+```
+
+### Interactive Mode
+
+```bash
+# Read from stdin (interactive)
+uchr normalize
+# Type text and press Ctrl+D to process
 ```
 
 ## 🌟 Advanced Examples
@@ -266,13 +331,60 @@ This tool uses official Unicode 15.0 data:
 - [Emoji Sequences](https://www.unicode.org/Public/emoji/15.0/emoji-sequences.txt)
 - [Emoji ZWJ Sequences](https://www.unicode.org/Public/emoji/15.0/emoji-zwj-sequences.txt)
 
+## 🏗 Development
+
+This project uses [Poetry](https://python-poetry.org/) for dependency management and packaging.
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/mkyutani/unicode-tools.git
+cd unicode-tools
+
+# Install dependencies
+poetry install
+
+# Run tests
+poetry run pytest
+
+# Format code
+poetry run black src/
+
+# Lint code
+poetry run ruff check src/
+```
+
+### Building and Publishing
+
+```bash
+# Build package
+poetry build
+
+# Publish to PyPI (maintainers only)
+poetry publish
+```
+
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Make your changes and add tests
+4. Run the test suite: `poetry run pytest`
+5. Format your code: `poetry run black src/`
+6. Lint your code: `poetry run ruff check src/`
+7. Commit your changes (`git commit -m 'Add amazing feature'`)
+8. Push to the branch (`git push origin feature/amazing-feature`)
+9. Open a Pull Request
+
+### Code Quality
+
+This project maintains high code quality standards:
+
+- **Type hints**: All functions should include type annotations
+- **Testing**: New features should include appropriate tests
+- **Documentation**: Update README and docstrings for new features
+- **Code style**: Follow Black formatting and Ruff linting rules
 
 ## 📄 License
 
@@ -281,4 +393,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - [Unicode Consortium](https://unicode.org/) for maintaining Unicode standards
+- [Poetry](https://python-poetry.org/) for modern Python packaging
 - Contributors and users of this project
+
+## 📊 Project Status
+
+- **Current Version**: 0.3.0
+- **Python Support**: 3.8+
+- **Unicode Version**: 15.0
+- **Package Name**: `uchr` (on PyPI)
+- **Repository**: [mkyutani/unicode-tools](https://github.com/mkyutani/unicode-tools)
+
+For the latest updates and roadmap, see our [GitHub Issues](https://github.com/mkyutani/unicode-tools/issues).
